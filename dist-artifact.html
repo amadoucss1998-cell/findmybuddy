@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<title>Find My Buddy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   Find My Buddy — Design System
+   Mobile-first, installable PWA. Light + dark aware.
+   ============================================================ */
+
+:root {
+  /* Brand */
+  --brand: #4f46e5;
+  --brand-600: #4338ca;
+  --brand-700: #3730a3;
+  --brand-soft: #eef0ff;
+  --accent: #f43f5e;
+  --accent-soft: #ffe4ea;
+  --gold: #f59e0b;
+  --gold-soft: #fff3d6;
+  --green: #10b981;
+  --green-soft: #d6f5ea;
+
+  /* Neutrals (light) */
+  --bg: #f5f6fb;
+  --surface: #ffffff;
+  --surface-2: #f0f2f8;
+  --border: #e6e8f0;
+  --text: #10121a;
+  --text-2: #565b6e;
+  --text-3: #8b8fa3;
+
+  --shadow-sm: 0 1px 2px rgba(16, 18, 26, .06), 0 1px 3px rgba(16, 18, 26, .05);
+  --shadow-md: 0 6px 20px rgba(16, 18, 26, .10);
+  --shadow-lg: 0 18px 50px rgba(16, 18, 26, .16);
+
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+
+  --nav-h: 68px;
+  --header-h: 60px;
+  --maxw: 620px;
+
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg: #0b0e17;
+  --surface: #151a26;
+  --surface-2: #1d2333;
+  --border: #262d40;
+  --text: #f2f4fb;
+  --text-2: #a9b0c5;
+  --text-3: #6f778f;
+  --brand-soft: #1e2240;
+  --accent-soft: #3a1c26;
+  --gold-soft: #3a2f14;
+  --green-soft: #123027;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.5);
+  --shadow-lg: 0 20px 55px rgba(0,0,0,.6);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea, select { font-family: inherit; font-size: 16px; }
+a { color: var(--brand); text-decoration: none; }
+img { max-width: 100%; display: block; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+
+/* ---------- App shell ---------- */
+#app { max-width: var(--maxw); margin: 0 auto; min-height: 100%; position: relative; }
+
+.screen {
+  padding: calc(env(safe-area-inset-top) + 12px) 16px calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px);
+  animation: fade .28s ease;
+}
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Header ---------- */
+.app-header {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 12px;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid var(--border);
+  max-width: var(--maxw); margin: 0 auto;
+}
+.app-header h1 { font-size: 20px; font-weight: 800; letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; }
+.app-header .logo-dot { width: 26px; height: 26px; border-radius: 9px; background: linear-gradient(135deg, var(--brand), var(--accent)); box-shadow: var(--shadow-sm); }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.icon-btn {
+  width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  color: var(--text-2); font-size: 18px; transition: transform .12s;
+}
+.icon-btn:active { transform: scale(.92); }
+
+.subtitle { color: var(--text-2); font-size: 14px; margin-top: 2px; }
+
+/* ---------- Bottom nav ---------- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  max-width: var(--maxw); margin: 0 auto;
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: saturate(1.4) blur(16px);
+  -webkit-backdrop-filter: saturate(1.4) blur(16px);
+  border-top: 1px solid var(--border);
+}
+.tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  color: var(--text-3); font-size: 11px; font-weight: 600; position: relative;
+  transition: color .15s;
+}
+.tab .ic { font-size: 21px; line-height: 1; }
+.tab.active { color: var(--brand); }
+.tab.active .ic { transform: translateY(-1px); }
+.tab .fab-plus {
+  width: 46px; height: 46px; margin-top: -18px; border-radius: 16px;
+  background: linear-gradient(135deg, var(--brand), var(--accent));
+  color: #fff; display: grid; place-items: center; font-size: 26px; font-weight: 700;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--brand) 45%, transparent);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 13px 18px; border-radius: 14px; font-weight: 700; font-size: 15px;
+  background: var(--surface-2); color: var(--text); transition: transform .12s, filter .15s;
+  border: 1px solid transparent;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary { background: linear-gradient(135deg, var(--brand), var(--brand-600)); color: #fff; box-shadow: 0 6px 18px color-mix(in srgb, var(--brand) 35%, transparent); }
+.btn-accent { background: linear-gradient(135deg, var(--accent), #e11d48); color: #fff; }
+.btn-gold { background: linear-gradient(135deg, var(--gold), #d97706); color: #fff; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-block { width: 100%; }
+.btn-sm { padding: 9px 14px; font-size: 13px; border-radius: 11px; }
+.btn:disabled { opacity: .5; pointer-events: none; }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm); padding: 16px; margin-bottom: 14px;
+}
+.card-tap { transition: transform .12s, box-shadow .15s; }
+.card-tap:active { transform: scale(.985); }
+
+/* ---------- Avatar ---------- */
+.avatar {
+  border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #fff;
+  flex: none; user-select: none; background: var(--brand);
+}
+.avatar.sq { border-radius: 14px; }
+.av-40 { width: 40px; height: 40px; font-size: 15px; }
+.av-48 { width: 48px; height: 48px; font-size: 17px; }
+.av-56 { width: 56px; height: 56px; font-size: 20px; }
+.av-88 { width: 88px; height: 88px; font-size: 30px; }
+
+/* ---------- Chips / tags ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 8px 13px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  background: var(--surface-2); color: var(--text-2); border: 1px solid transparent;
+  transition: all .12s; white-space: nowrap;
+}
+.chip.selectable:active { transform: scale(.95); }
+.chip.on { background: var(--brand-soft); color: var(--brand); border-color: color-mix(in srgb, var(--brand) 35%, transparent); }
+.chip.tiny { padding: 4px 10px; font-size: 11.5px; }
+.chip.match { background: var(--green-soft); color: var(--green); }
+
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- Segmented control ---------- */
+.segment { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 14px; margin-bottom: 16px; }
+.segment button { flex: 1; padding: 9px; border-radius: 11px; font-weight: 700; font-size: 13.5px; color: var(--text-2); }
+.segment button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+
+/* ---------- Forms ---------- */
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 13px; font-weight: 700; color: var(--text-2); margin-bottom: 7px; }
+.input, textarea.input, select.input {
+  width: 100%; padding: 13px 14px; border-radius: 13px; background: var(--surface);
+  border: 1px solid var(--border); color: var(--text); transition: border .15s, box-shadow .15s;
+}
+.input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent); }
+textarea.input { resize: vertical; min-height: 92px; }
+.hint { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+
+/* ---------- Layout helpers ---------- */
+.row { display: flex; gap: 12px; align-items: center; }
+.between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.grow { flex: 1; min-width: 0; }
+.muted { color: var(--text-2); }
+.dim { color: var(--text-3); }
+.small { font-size: 13px; }
+.tiny { font-size: 11.5px; }
+.bold { font-weight: 700; }
+.center { text-align: center; }
+.mt-8 { margin-top: 8px; } .mt-16 { margin-top: 16px; } .mt-24 { margin-top: 24px; }
+.mb-8 { margin-bottom: 8px; } .mb-16 { margin-bottom: 16px; }
+.gap-6 { gap: 6px; } .wrap { flex-wrap: wrap; }
+.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.section-title { font-size: 17px; font-weight: 800; letter-spacing: -.01em; margin: 22px 0 12px; }
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* ---------- Match meter ---------- */
+.meter { height: 7px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.meter > i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green), var(--brand)); }
+
+/* ---------- Activity card ---------- */
+.activity-cover {
+  height: 108px; border-radius: var(--r-md); margin: -16px -16px 14px; display: flex; align-items: flex-end;
+  padding: 12px 14px; color: #fff; position: relative; overflow: hidden;
+}
+.activity-cover .price-pill {
+  position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,.35); backdrop-filter: blur(6px);
+  padding: 6px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 700;
+}
+.activity-cover .emoji { position: absolute; top: 8px; left: 14px; font-size: 40px; opacity: .95; filter: drop-shadow(0 2px 6px rgba(0,0,0,.3)); }
+.meta-row { display: flex; flex-wrap: wrap; gap: 12px; color: var(--text-2); font-size: 13px; font-weight: 600; margin: 6px 0; }
+.meta-row span { display: inline-flex; align-items: center; gap: 5px; }
+
+.attendees { display: flex; align-items: center; }
+.attendees .avatar { border: 2px solid var(--surface); margin-left: -10px; box-shadow: var(--shadow-sm); }
+.attendees .avatar:first-child { margin-left: 0; }
+
+/* ---------- Empty state ---------- */
+.empty { text-align: center; padding: 48px 20px; color: var(--text-2); }
+.empty .em { font-size: 46px; margin-bottom: 12px; }
+.empty h3 { color: var(--text); font-size: 17px; margin-bottom: 6px; }
+
+/* ---------- Banner / premium ---------- */
+.premium-banner {
+  border-radius: var(--r-lg); padding: 18px; color: #fff; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #6d28d9, #db2777 90%);
+  box-shadow: var(--shadow-md); margin-bottom: 16px;
+}
+.premium-banner::after { content: "✦"; position: absolute; right: -6px; top: -18px; font-size: 120px; opacity: .12; }
+.premium-banner h3 { font-size: 18px; font-weight: 800; }
+.premium-banner p { font-size: 13.5px; opacity: .92; margin: 4px 0 12px; max-width: 78%; }
+
+/* ---------- Modal / sheet ---------- */
+.overlay {
+  position: fixed; inset: 0; z-index: 60; background: rgba(6, 8, 15, .55);
+  display: flex; align-items: flex-end; justify-content: center; animation: fade .2s ease;
+  backdrop-filter: blur(2px);
+}
+.sheet {
+  width: 100%; max-width: var(--maxw); background: var(--surface);
+  border-radius: var(--r-xl) var(--r-xl) 0 0; padding: 10px 18px calc(env(safe-area-inset-bottom) + 22px);
+  box-shadow: var(--shadow-lg); animation: slideup .3s cubic-bezier(.2,.8,.2,1); max-height: 92vh; overflow-y: auto;
+}
+@keyframes slideup { from { transform: translateY(100%); } to { transform: none; } }
+.grabber { width: 42px; height: 5px; border-radius: 999px; background: var(--border); margin: 6px auto 14px; }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: calc(var(--nav-h) + 20px);
+  translate: -50% 20px; z-index: 90;
+  background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 14px;
+  font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none;
+  transition: opacity .2s, translate .25s; max-width: 88%;
+}
+.toast.show { opacity: 1; translate: -50% 0; }
+
+/* ---------- Onboarding ---------- */
+.onboard { min-height: 100%; display: flex; flex-direction: column; padding: calc(env(safe-area-inset-top) + 24px) 22px calc(env(safe-area-inset-bottom) + 22px); }
+.onboard-hero { text-align: center; margin: 24px 0; }
+.onboard-logo { width: 76px; height: 76px; border-radius: 24px; margin: 0 auto 18px; background: linear-gradient(135deg, var(--brand), var(--accent)); display: grid; place-items: center; font-size: 38px; box-shadow: var(--shadow-lg); }
+.onboard h1 { font-size: 28px; font-weight: 800; letter-spacing: -.03em; }
+.onboard .lead { color: var(--text-2); font-size: 15px; margin-top: 8px; }
+.progress-dots { display: flex; gap: 7px; justify-content: center; margin: 4px 0 20px; }
+.progress-dots i { width: 8px; height: 8px; border-radius: 999px; background: var(--border); transition: all .2s; }
+.progress-dots i.on { width: 22px; background: var(--brand); }
+
+/* ---------- Messages ---------- */
+.thread { display: flex; flex-direction: column; gap: 8px; padding: 8px 0 90px; }
+.bubble { max-width: 78%; padding: 10px 14px; border-radius: 18px; font-size: 14.5px; line-height: 1.4; }
+.bubble.them { align-self: flex-start; background: var(--surface-2); border-bottom-left-radius: 6px; }
+.bubble.me { align-self: flex-end; background: linear-gradient(135deg, var(--brand), var(--brand-600)); color: #fff; border-bottom-right-radius: 6px; }
+.msg-time { font-size: 10.5px; color: var(--text-3); margin: 2px 4px; }
+.composer {
+  position: fixed; bottom: 0; left: 0; right: 0; max-width: var(--maxw); margin: 0 auto;
+  display: flex; gap: 8px; padding: 12px 14px calc(env(safe-area-inset-bottom) + 12px);
+  background: var(--surface); border-top: 1px solid var(--border);
+}
+.composer input { flex: 1; padding: 12px 15px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+.composer .send { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-600)); color: #fff; font-size: 20px; display: grid; place-items: center; flex: none; }
+
+/* ---------- Back header ---------- */
+.subheader { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 30;
+  padding: calc(env(safe-area-inset-top) + 10px) 14px 12px; background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
+  max-width: var(--maxw); margin: 0 auto; }
+.subheader h2 { font-size: 17px; font-weight: 800; }
+
+/* ---------- Stat row ---------- */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { background: var(--surface-2); border-radius: var(--r-md); padding: 14px 10px; text-align: center; }
+.stat b { font-size: 20px; font-weight: 800; display: block; }
+.stat span { font-size: 12px; color: var(--text-2); }
+
+/* ---------- Search ---------- */
+.searchbar { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 11px 14px; margin-bottom: 14px; box-shadow: var(--shadow-sm); }
+.searchbar input { flex: 1; border: none; background: none; color: var(--text); outline: none; }
+.searchbar .ic { color: var(--text-3); }
+
+.scroll-x { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin: 0 -16px 14px; padding-inline: 16px; scrollbar-width: none; }
+.scroll-x::-webkit-scrollbar { display: none; }
+
+.badge-verified { color: var(--brand); font-size: 13px; }
+.badge-plus { background: linear-gradient(135deg,var(--gold),#d97706); color:#fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 999px; letter-spacing: .03em; }
+
+</style>
+</head>
+<body>
+<div id="app" aria-live="polite"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="modal-root"></div>
+<script>
+/* ============================================================
+   Find My Buddy — Seed data (Liberia-localized)
+   Exposed on window.FMB_DATA
+   ============================================================ */
+(function () {
+  const COUNTIES = [
+    "Montserrado", "Nimba", "Bong", "Grand Bassa", "Lofa", "Margibi",
+    "Grand Gedeh", "Maryland", "Sinoe", "Bomi", "Grand Cape Mount",
+    "Gbarpolu", "River Cess", "River Gee", "Grand Kru"
+  ];
+
+  // interest catalog: id, label, emoji, gradient colors
+  const INTERESTS = [
+    { id: "football",   label: "Football",       emoji: "⚽", c: ["#16a34a", "#065f46"] },
+    { id: "music",      label: "Music & DJ",     emoji: "🎧", c: ["#7c3aed", "#4c1d95"] },
+    { id: "tech",       label: "Tech & Coding",  emoji: "💻", c: ["#2563eb", "#1e3a8a"] },
+    { id: "business",   label: "Business",       emoji: "💼", c: ["#0f766e", "#134e4a"] },
+    { id: "food",       label: "Food & Cooking", emoji: "🍲", c: ["#ea580c", "#9a3412"] },
+    { id: "fashion",    label: "Fashion",        emoji: "👗", c: ["#db2777", "#831843"] },
+    { id: "faith",      label: "Faith",          emoji: "🙏", c: ["#4f46e5", "#312e81"] },
+    { id: "art",        label: "Art & Craft",    emoji: "🎨", c: ["#e11d48", "#881337"] },
+    { id: "dance",      label: "Dance",          emoji: "💃", c: ["#c026d3", "#701a75"] },
+    { id: "gaming",     label: "Gaming",         emoji: "🎮", c: ["#0891b2", "#164e63"] },
+    { id: "fitness",    label: "Fitness",        emoji: "🏋️", c: ["#dc2626", "#7f1d1d"] },
+    { id: "reading",    label: "Reading",        emoji: "📚", c: ["#0d9488", "#115e59"] },
+    { id: "farming",    label: "Farming",        emoji: "🌾", c: ["#65a30d", "#365314"] },
+    { id: "photography",label: "Photography",    emoji: "📸", c: ["#475569", "#1e293b"] },
+    { id: "movies",     label: "Movies",         emoji: "🎬", c: ["#9333ea", "#581c87"] },
+    { id: "volunteer",  label: "Volunteering",   emoji: "🤝", c: ["#0284c7", "#075985"] },
+    { id: "basketball", label: "Basketball",     emoji: "🏀", c: ["#f59e0b", "#b45309"] },
+    { id: "travel",     label: "Travel",         emoji: "🧳", c: ["#0ea5e9", "#0c4a6e"] },
+  ];
+
+  const AV_COLORS = ["#4f46e5","#e11d48","#0891b2","#16a34a","#d97706","#7c3aed","#db2777","#0d9488","#dc2626","#2563eb"];
+
+  // Sample people already on the platform
+  const PEOPLE = [
+    { id: "u_ama",    name: "Ama Kollie",     county: "Montserrado", bio: "Frontend dev learning React. Love jollof and code.", interests: ["tech","food","music"], verified: true },
+    { id: "u_moses",  name: "Moses Tarnue",   county: "Nimba",       bio: "Striker for the community team. Always down for a match.", interests: ["football","fitness","faith"] },
+    { id: "u_grace",  name: "Grace Weah",     county: "Montserrado", bio: "Fashion entrepreneur building a brand from Monrovia.", interests: ["fashion","business","art"], verified: true },
+    { id: "u_prince", name: "Prince Doe",     county: "Margibi",     bio: "DJ + producer. Let's make some noise this weekend.", interests: ["music","dance","gaming"] },
+    { id: "u_fatu",   name: "Fatu Sherif",    county: "Bong",        bio: "Nurse and volunteer. Reading is my quiet time.", interests: ["volunteer","reading","faith"] },
+    { id: "u_jc",     name: "J.C. Nyenpan",   county: "Grand Gedeh", bio: "Cassava & vegetable farmer. Teaching youth agriculture.", interests: ["farming","business","volunteer"] },
+    { id: "u_kebeh",  name: "Kebeh Johnson",  county: "Montserrado", bio: "Photographer capturing Liberian life. Open for collabs.", interests: ["photography","art","travel"], verified: true },
+    { id: "u_emma",   name: "Emmanuel Boyd",  county: "Grand Bassa", bio: "Backend engineer. Coffee, Python, and pickup basketball.", interests: ["tech","basketball","gaming"] },
+    { id: "u_musu",   name: "Musu Kamara",    county: "Lofa",        bio: "Dance instructor. Afrobeats and traditional moves.", interests: ["dance","music","fitness"] },
+    { id: "u_saah",   name: "Saah Gongloe",   county: "Nimba",       bio: "Small business owner. Let's talk hustle and growth.", interests: ["business","football","faith"] },
+    { id: "u_bendu",  name: "Bendu Massaquoi",county: "Montserrado", bio: "Chef running a supper club. Food brings people together.", interests: ["food","business","travel"], verified: true },
+    { id: "u_tommy",  name: "Tommy Brown",    county: "Margibi",     bio: "Gamer & streamer. FIFA nights every Friday.", interests: ["gaming","football","movies"] },
+    { id: "u_hawa",   name: "Hawa Konneh",    county: "Bong",        bio: "Bookworm & aspiring writer. Starting a book club.", interests: ["reading","art","faith"] },
+    { id: "u_alpha",  name: "Alpha Kromah",   county: "Montserrado", bio: "Startup founder in fintech. Building for Liberia.", interests: ["tech","business","reading"], verified: true },
+    { id: "u_deddeh", name: "Deddeh Toe",     county: "Grand Bassa", bio: "Fitness coach. Free morning runs on the beach.", interests: ["fitness","food","dance"] },
+    { id: "u_sam",    name: "Sam Wolo",       county: "Maryland",    bio: "Football coach for the youth league. Faith & family.", interests: ["football","faith","volunteer"] },
+  ];
+
+  // Activity templates -> converted to dated activities at load time
+  const ACTIVITY_SEED = [
+    { title: "Saturday Pickup Football", interest: "football", host: "u_moses", county: "Nimba", location: "Sanniquellie Community Field", inDays: 2, hour: 16, cap: 22, priceLRD: 0, desc: "Casual 11-a-side. Bring water and good vibes. All skill levels welcome!" },
+    { title: "React & JavaScript Meetup", interest: "tech", host: "u_alpha", county: "Montserrado", location: "iLab Liberia, Monrovia", inDays: 5, hour: 15, cap: 40, priceLRD: 0, desc: "Monthly dev meetup. This month: building your first React app + networking." },
+    { title: "Afrobeats Dance Class", interest: "dance", host: "u_musu", county: "Lofa", location: "Voinjama Youth Center", inDays: 3, hour: 17, cap: 30, priceLRD: 300, desc: "Learn the latest Afrobeats choreography. Beginners very welcome." },
+    { title: "Monrovia Supper Club", interest: "food", host: "u_bendu", county: "Montserrado", location: "Sinkor, 12th Street", inDays: 6, hour: 19, cap: 16, priceLRD: 1500, desc: "3-course Liberian fusion dinner + new friends around one table." },
+    { title: "Sunday Morning Beach Run", interest: "fitness", host: "u_deddeh", county: "Grand Bassa", location: "Buchanan Beach", inDays: 4, hour: 6, cap: 50, priceLRD: 0, desc: "5km easy run followed by stretching. Free for everyone." },
+    { title: "Young Founders Business Circle", interest: "business", host: "u_grace", county: "Montserrado", location: "Royal Grand Hotel", inDays: 8, hour: 14, cap: 25, priceLRD: 500, desc: "Peer mentoring for entrepreneurs. Pitch, get feedback, grow together." },
+    { title: "FIFA Tournament Night", interest: "gaming", host: "u_tommy", county: "Margibi", location: "Kakata Game Lounge", inDays: 5, hour: 18, cap: 32, priceLRD: 200, desc: "Bracket-style FIFA showdown. Winner takes the pot 🏆." },
+    { title: "Photography Walk: Old Monrovia", interest: "photography", host: "u_kebeh", county: "Montserrado", location: "Waterside Market", inDays: 7, hour: 8, cap: 12, priceLRD: 0, desc: "Golden-hour street photography walk. Any camera or phone works." },
+    { title: "Community Book Club", interest: "reading", host: "u_hawa", county: "Bong", location: "Gbarnga Public Library", inDays: 9, hour: 16, cap: 20, priceLRD: 0, desc: "This month's read: African short stories. Come discuss over tea." },
+    { title: "Youth Farm Volunteer Day", interest: "farming", host: "u_jc", county: "Grand Gedeh", location: "Zwedru Demonstration Farm", inDays: 6, hour: 9, cap: 40, priceLRD: 0, desc: "Learn sustainable farming while giving back. Lunch provided." },
+    { title: "Praise & Worship Night", interest: "faith", host: "u_fatu", county: "Bong", location: "Gbarnga Fellowship Hall", inDays: 3, hour: 18, cap: 100, priceLRD: 0, desc: "An evening of worship, prayer and community fellowship." },
+    { title: "Fashion Pop-Up Market", interest: "fashion", host: "u_grace", county: "Montserrado", location: "Broad Street Plaza", inDays: 10, hour: 12, cap: 60, priceLRD: 0, desc: "Local designers showcase. Shop, connect, and support Liberian fashion." },
+  ];
+
+  window.FMB_DATA = { COUNTIES, INTERESTS, AV_COLORS, PEOPLE, ACTIVITY_SEED };
+})();
+
+</script>
+<script>
+/* ============================================================
+   Find My Buddy — Store (state + persistence + logic)
+   Exposed on window.Store
+   ============================================================ */
+(function () {
+  const KEY = "fmb_state_v1";
+  const D = window.FMB_DATA;
+
+  function uid(prefix) { return prefix + "_" + Math.random().toString(36).slice(2, 9); }
+  function now() { return Date.now(); }
+
+  function futureDate(inDays, hour) {
+    const d = new Date();
+    d.setDate(d.getDate() + inDays);
+    d.setHours(hour, 0, 0, 0);
+    return d.getTime();
+  }
+
+  function buildSeedActivities() {
+    return D.ACTIVITY_SEED.map((a) => ({
+      id: uid("act"),
+      title: a.title,
+      interest: a.interest,
+      hostId: a.host,
+      county: a.county,
+      location: a.location,
+      when: futureDate(a.inDays, a.hour),
+      capacity: a.cap,
+      priceLRD: a.priceLRD,
+      desc: a.desc,
+      attendees: seedAttendees(a.host, a.interest),
+      promoted: a.priceLRD > 800, // pretend paid boosts
+      createdAt: now(),
+    }));
+  }
+
+  // give each seed activity a few plausible attendees
+  function seedAttendees(hostId, interest) {
+    const pool = D.PEOPLE.filter((p) => p.id !== hostId && p.interests.includes(interest)).map((p) => p.id);
+    const others = D.PEOPLE.filter((p) => p.id !== hostId && !p.interests.includes(interest)).map((p) => p.id);
+    const picks = [hostId, ...pool.slice(0, 3), ...others.slice(0, 1)];
+    return [...new Set(picks)];
+  }
+
+  const DEFAULT_STATE = () => ({
+    onboarded: false,
+    theme: "light",
+    me: null, // {id,name,county,bio,interests[],plus:false}
+    people: D.PEOPLE.map((p) => ({ ...p, avatarColor: pickColor(p.id) })),
+    activities: buildSeedActivities(),
+    connections: [],   // person ids I've connected with
+    joined: [],        // activity ids I've joined
+    threads: {},       // personId -> [{from:'me'|'them', text, at}]
+    seenPlus: false,
+  });
+
+  function pickColor(seed) {
+    let h = 0;
+    for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+    return D.AV_COLORS[h % D.AV_COLORS.length];
+  }
+
+  let state = load();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return DEFAULT_STATE();
+      const parsed = JSON.parse(raw);
+      // shallow migration safety
+      return Object.assign(DEFAULT_STATE(), parsed);
+    } catch (e) {
+      return DEFAULT_STATE();
+    }
+  }
+
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  const listeners = new Set();
+  function subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); }
+  function emit() { persist(); listeners.forEach((fn) => fn(state)); }
+
+  /* ---------- Selectors ---------- */
+  function get() { return state; }
+  function me() { return state.me; }
+  function personById(id) {
+    if (state.me && id === state.me.id) return { ...state.me, avatarColor: pickColor(state.me.id), isMe: true };
+    return state.people.find((p) => p.id === id) || { id, name: "Unknown", county: "", interests: [], avatarColor: "#999" };
+  }
+  function interestById(id) { return D.INTERESTS.find((i) => i.id === id); }
+  function activityById(id) { return state.activities.find((a) => a.id === id); }
+
+  // Match score 0..100 between me and a person = shared interests weighted + same county bonus
+  function matchScore(person) {
+    if (!state.me) return 0;
+    const mine = new Set(state.me.interests);
+    const shared = person.interests.filter((i) => mine.has(i));
+    const denom = Math.max(1, Math.min(mine.size, person.interests.length));
+    let score = Math.round((shared.length / denom) * 92);
+    if (person.county === state.me.county) score += 8;
+    return Math.max(6, Math.min(100, score));
+  }
+  function sharedInterests(person) {
+    if (!state.me) return [];
+    const mine = new Set(state.me.interests);
+    return person.interests.filter((i) => mine.has(i));
+  }
+
+  function suggestedPeople() {
+    return state.people
+      .map((p) => ({ ...p, _score: matchScore(p), _shared: sharedInterests(p).length }))
+      .sort((a, b) => b._score - a._score);
+  }
+
+  function activityRelevance(a) {
+    if (!state.me) return a.promoted ? 1 : 0;
+    const mine = new Set(state.me.interests);
+    let s = mine.has(a.interest) ? 60 : 0;
+    if (a.county === state.me.county) s += 20;
+    if (a.promoted) s += 10;
+    // soonness bonus
+    const days = (a.when - now()) / 86400000;
+    if (days > 0 && days < 4) s += 8;
+    return s;
+  }
+
+  function upcomingActivities() {
+    return state.activities
+      .filter((a) => a.when > now() - 3600000)
+      .map((a) => ({ ...a, _rel: activityRelevance(a) }))
+      .sort((a, b) => b._rel - a._rel || a.when - b.when);
+  }
+
+  /* ---------- Mutations ---------- */
+  function completeOnboarding(profile) {
+    state.me = {
+      id: uid("me"),
+      name: profile.name.trim(),
+      county: profile.county,
+      bio: profile.bio.trim(),
+      interests: profile.interests,
+      plus: false,
+      avatarColor: "#4f46e5",
+      joinedAt: now(),
+    };
+    state.onboarded = true;
+    emit();
+  }
+
+  function updateProfile(patch) {
+    if (!state.me) return;
+    Object.assign(state.me, patch);
+    emit();
+  }
+
+  function toggleConnection(personId) {
+    const i = state.connections.indexOf(personId);
+    if (i >= 0) state.connections.splice(i, 1);
+    else state.connections.push(personId);
+    emit();
+    return state.connections.includes(personId);
+  }
+  function isConnected(personId) { return state.connections.includes(personId); }
+
+  function toggleJoin(activityId) {
+    const a = activityById(activityId);
+    if (!a || !state.me) return false;
+    const meId = state.me.id;
+    const i = state.joined.indexOf(activityId);
+    if (i >= 0) {
+      state.joined.splice(i, 1);
+      a.attendees = a.attendees.filter((x) => x !== meId);
+    } else {
+      state.joined.push(activityId);
+      if (!a.attendees.includes(meId)) a.attendees.push(meId);
+    }
+    emit();
+    return state.joined.includes(activityId);
+  }
+  function isJoined(activityId) { return state.joined.includes(activityId); }
+
+  function createActivity(data) {
+    const a = {
+      id: uid("act"),
+      title: data.title.trim(),
+      interest: data.interest,
+      hostId: state.me.id,
+      county: data.county,
+      location: data.location.trim(),
+      when: data.when,
+      capacity: Number(data.capacity) || 20,
+      priceLRD: Number(data.priceLRD) || 0,
+      desc: data.desc.trim(),
+      attendees: [state.me.id],
+      promoted: !!data.promoted,
+      createdAt: now(),
+    };
+    state.activities.unshift(a);
+    state.joined.push(a.id);
+    emit();
+    return a;
+  }
+
+  function myHostedActivities() {
+    if (!state.me) return [];
+    return state.activities.filter((a) => a.hostId === state.me.id).sort((a, b) => a.when - b.when);
+  }
+  function myJoinedActivities() {
+    return state.joined.map(activityById).filter(Boolean).sort((a, b) => a.when - b.when);
+  }
+
+  /* ---------- Messaging ---------- */
+  const AUTO_REPLIES = [
+    "Hey! Great to connect 🙌", "That sounds good, count me in!",
+    "Yes o! When and where?", "Nice, let's link up this week.",
+    "For real? I've been wanting to try that.", "Cool cool, I'll bring a friend too.",
+    "Bless! See you there.", "Ha, love the energy 😄 let's do it.",
+  ];
+  function thread(personId) { return state.threads[personId] || []; }
+  function sendMessage(personId, text) {
+    if (!text.trim()) return;
+    if (!state.threads[personId]) state.threads[personId] = [];
+    state.threads[personId].push({ from: "me", text: text.trim(), at: now() });
+    emit();
+    // simulate a reply after a short delay
+    setTimeout(() => {
+      const reply = AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)];
+      state.threads[personId].push({ from: "them", text: reply, at: now() });
+      emit();
+    }, 1100 + Math.random() * 900);
+  }
+  function conversations() {
+    return Object.keys(state.threads)
+      .map((pid) => {
+        const t = state.threads[pid];
+        const last = t[t.length - 1];
+        return { personId: pid, last, count: t.length };
+      })
+      .sort((a, b) => (b.last ? b.last.at : 0) - (a.last ? a.last.at : 0));
+  }
+
+  function upgradeToPlus() {
+    if (state.me) { state.me.plus = true; emit(); }
+  }
+
+  function setTheme(t) { state.theme = t; document.documentElement.setAttribute("data-theme", t); emit(); }
+
+  function resetAll() {
+    localStorage.removeItem(KEY);
+    state = DEFAULT_STATE();
+    emit();
+  }
+
+  // apply theme immediately
+  document.documentElement.setAttribute("data-theme", state.theme || "light");
+
+  window.Store = {
+    subscribe, get, me, personById, interestById, activityById,
+    matchScore, sharedInterests, suggestedPeople, upcomingActivities, activityRelevance,
+    completeOnboarding, updateProfile, toggleConnection, isConnected,
+    toggleJoin, isJoined, createActivity, myHostedActivities, myJoinedActivities,
+    thread, sendMessage, conversations, upgradeToPlus, setTheme, resetAll,
+    uid, pickColor,
+  };
+})();
+
+</script>
+<script>
+/* ============================================================
+   Find My Buddy — App (router + views)
+   ============================================================ */
+(function () {
+  const S = window.Store;
+  const D = window.FMB_DATA;
+  const app = document.getElementById("app");
+
+  /* ---------------- Helpers ---------------- */
+  const h = (html) => html; // tag for readability
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  function initials(name) {
+    const parts = String(name).trim().split(/\s+/);
+    return ((parts[0]?.[0] || "") + (parts[1]?.[0] || "")).toUpperCase() || "?";
+  }
+  function avatar(person, size = 40, square = false) {
+    return `<div class="avatar av-${size} ${square ? "sq" : ""}" style="background:${person.avatarColor || "#4f46e5"}">${esc(initials(person.name))}</div>`;
+  }
+  function money(lrd) { return lrd === 0 ? "Free" : "L$" + Number(lrd).toLocaleString(); }
+  function interestPill(id, opts = {}) {
+    const it = S.interestById(id); if (!it) return "";
+    return `<span class="chip tiny ${opts.on ? "on" : ""}">${it.emoji} ${esc(it.label)}</span>`;
+  }
+  function fmtWhen(ts) {
+    const d = new Date(ts);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const dd = new Date(ts); dd.setHours(0, 0, 0, 0);
+    const diff = Math.round((dd - today) / 86400000);
+    const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    let day;
+    if (diff === 0) day = "Today";
+    else if (diff === 1) day = "Tomorrow";
+    else if (diff > 1 && diff < 7) day = d.toLocaleDateString([], { weekday: "long" });
+    else day = d.toLocaleDateString([], { month: "short", day: "numeric" });
+    return `${day} · ${time}`;
+  }
+  function relTime(ts) {
+    const s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return "now";
+    if (s < 3600) return Math.floor(s / 60) + "m";
+    if (s < 86400) return Math.floor(s / 3600) + "h";
+    return Math.floor(s / 86400) + "d";
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  const modalRoot = document.getElementById("modal-root");
+  function openSheet(innerHTML) {
+    modalRoot.innerHTML = `<div class="overlay" id="ov"><div class="sheet" role="dialog" aria-modal="true"><div class="grabber"></div>${innerHTML}</div></div>`;
+    const ov = document.getElementById("ov");
+    ov.addEventListener("click", (e) => { if (e.target === ov) closeSheet(); });
+    return modalRoot.querySelector(".sheet");
+  }
+  function closeSheet() { modalRoot.innerHTML = ""; }
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modalRoot.innerHTML) closeSheet(); });
+
+  /* ---------------- Router ---------------- */
+  const routes = {};
+  function route(name, fn) { routes[name] = fn; }
+  function go(hash) { if (location.hash === hash) render(); else location.hash = hash; }
+  window.FMB = { go, toast }; // for inline handlers
+
+  function currentRoute() {
+    const raw = (location.hash || "#/discover").slice(1);
+    const [path, arg] = raw.split("/").filter(Boolean).length ? [raw.replace(/^\//, ""), null] : ["discover", null];
+    const parts = raw.replace(/^\//, "").split("/");
+    return { name: parts[0] || "discover", arg: parts[1] || null };
+  }
+
+  /* ---------------- Shell ---------------- */
+  const TABS = [
+    { name: "discover",   ic: "🧭", label: "Discover" },
+    { name: "activities", ic: "📅", label: "Activities" },
+    { name: "create",     ic: "＋", label: "Create", fab: true },
+    { name: "messages",   ic: "💬", label: "Chats" },
+    { name: "profile",    ic: "👤", label: "Profile" },
+  ];
+  function tabbar(active) {
+    return `<nav class="tabbar">${TABS.map((t) => `
+      <button class="tab ${t.name === active ? "active" : ""}" onclick="FMB.go('#/${t.name}')" aria-label="${t.label}">
+        ${t.fab ? `<span class="fab-plus">＋</span>` : `<span class="ic">${t.ic}</span><span>${t.label}</span>`}
+      </button>`).join("")}</nav>`;
+  }
+  function header(title, subtitle) {
+    return `<header class="app-header">
+      <div>
+        <h1><span class="logo-dot"></span> ${esc(title)}</h1>
+        ${subtitle ? `<div class="subtitle">${esc(subtitle)}</div>` : ""}
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="FMB.toggleTheme()" aria-label="Toggle theme">${S.get().theme === "dark" ? "☀️" : "🌙"}</button>
+      </div>
+    </header>`;
+  }
+  function subheader(title, back = "#/discover") {
+    return `<div class="subheader"><button class="icon-btn" onclick="FMB.go('${back}')" aria-label="Back">‹</button><h2>${esc(title)}</h2></div>`;
+  }
+
+  FMB.toggleTheme = () => { S.setTheme(S.get().theme === "dark" ? "light" : "dark"); render(); };
+
+  /* ================= ONBOARDING ================= */
+  const onboard = { step: 0, name: "", county: "Montserrado", interests: [], bio: "" };
+  function renderOnboarding() {
+    const steps = [stepWelcome, stepProfile, stepInterests, stepBio];
+    app.innerHTML = `<div class="onboard">${steps[onboard.step]()}</div>`;
+    wireOnboarding();
+  }
+  function dots() {
+    return `<div class="progress-dots">${[0, 1, 2, 3].map((i) => `<i class="${i <= onboard.step ? "on" : ""}"></i>`).join("")}</div>`;
+  }
+  function stepWelcome() {
+    return `
+      <div class="onboard-hero" style="margin-top:8vh">
+        <div class="onboard-logo">🤝</div>
+        <h1>Find My Buddy</h1>
+        <p class="lead">Meet people across Liberia who love what you love — and find or create activities to do together.</p>
+      </div>
+      <div class="mt-24">
+        ${[["🧭", "Discover buddies", "Get matched by shared interests & county"],
+           ["📅", "Join real activities", "Football, meetups, dinners, dance & more"],
+           ["🚀", "Create your own", "Host an event and grow your community"]].map(([e, t, d]) => `
+          <div class="card row" style="align-items:flex-start">
+            <div class="avatar av-48 sq" style="background:var(--brand-soft);color:var(--brand);font-size:22px">${e}</div>
+            <div class="grow"><div class="bold">${t}</div><div class="muted small">${d}</div></div>
+          </div>`).join("")}
+      </div>
+      <div class="grow"></div>
+      ${dots()}
+      <button class="btn btn-primary btn-block" id="ob-next">Get started</button>`;
+  }
+  function stepProfile() {
+    return `
+      <div style="margin-top:2vh">
+        <h1 style="font-size:24px">What's your name?</h1>
+        <p class="lead">This is how buddies will find you.</p>
+      </div>
+      <div class="mt-24">
+        <div class="field">
+          <label>Full name</label>
+          <input class="input" id="ob-name" placeholder="e.g. Amadou Kollie" value="${esc(onboard.name)}" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label>Your county</label>
+          <select class="input" id="ob-county">
+            ${D.COUNTIES.map((c) => `<option ${c === onboard.county ? "selected" : ""}>${c}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <div class="grow"></div>
+      ${dots()}
+      <div class="row">
+        <button class="btn btn-ghost" id="ob-back">Back</button>
+        <button class="btn btn-primary grow" id="ob-next">Continue</button>
+      </div>`;
+  }
+  function stepInterests() {
+    return `
+      <div style="margin-top:2vh">
+        <h1 style="font-size:24px">Pick your interests</h1>
+        <p class="lead">Choose at least 3. We'll match you with buddies and activities.</p>
+      </div>
+      <div class="chips mt-24" id="ob-interests">
+        ${D.INTERESTS.map((it) => `<button type="button" class="chip selectable ${onboard.interests.includes(it.id) ? "on" : ""}" data-id="${it.id}">${it.emoji} ${it.label}</button>`).join("")}
+      </div>
+      <div class="grow"></div>
+      ${dots()}
+      <div class="row">
+        <button class="btn btn-ghost" id="ob-back">Back</button>
+        <button class="btn btn-primary grow" id="ob-next">Continue (<span id="ob-count">${onboard.interests.length}</span>)</button>
+      </div>`;
+  }
+  function stepBio() {
+    return `
+      <div style="margin-top:2vh">
+        <h1 style="font-size:24px">Add a short bio</h1>
+        <p class="lead">Tell buddies a little about you. You can change this later.</p>
+      </div>
+      <div class="mt-24">
+        <div class="field">
+          <textarea class="input" id="ob-bio" placeholder="e.g. Love football and coding. New to Monrovia, looking to meet people!">${esc(onboard.bio)}</textarea>
+        </div>
+      </div>
+      <div class="grow"></div>
+      ${dots()}
+      <div class="row">
+        <button class="btn btn-ghost" id="ob-back">Back</button>
+        <button class="btn btn-primary grow" id="ob-finish">Join Find My Buddy 🎉</button>
+      </div>`;
+  }
+  function wireOnboarding() {
+    const next = document.getElementById("ob-next");
+    const back = document.getElementById("ob-back");
+    const finish = document.getElementById("ob-finish");
+    if (back) back.onclick = () => { onboard.step--; renderOnboarding(); };
+    if (next) next.onclick = () => {
+      if (onboard.step === 1) {
+        const name = document.getElementById("ob-name").value.trim();
+        onboard.name = name;
+        onboard.county = document.getElementById("ob-county").value;
+        if (!name) { toast("Please enter your name"); return; }
+      }
+      if (onboard.step === 2 && onboard.interests.length < 3) { toast("Pick at least 3 interests"); return; }
+      onboard.step++; renderOnboarding();
+    };
+    if (finish) finish.onclick = () => {
+      onboard.bio = document.getElementById("ob-bio").value;
+      S.completeOnboarding({ name: onboard.name, county: onboard.county, interests: onboard.interests, bio: onboard.bio });
+      toast("Welcome to Find My Buddy! 🎉");
+      go("#/discover");
+    };
+    const wrap = document.getElementById("ob-interests");
+    if (wrap) wrap.querySelectorAll(".chip").forEach((c) => {
+      c.onclick = () => {
+        const id = c.dataset.id;
+        const i = onboard.interests.indexOf(id);
+        if (i >= 0) onboard.interests.splice(i, 1); else onboard.interests.push(id);
+        c.classList.toggle("on");
+        const cnt = document.getElementById("ob-count"); if (cnt) cnt.textContent = onboard.interests.length;
+      };
+    });
+  }
+
+  /* ================= DISCOVER (People) ================= */
+  const discoverState = { q: "", filter: "all" };
+  route("discover", () => {
+    const meP = S.me();
+    let people = S.suggestedPeople().filter((p) => !S.isConnected(p.id) || discoverState.filter !== "new");
+    if (discoverState.filter === "connections") people = S.suggestedPeople().filter((p) => S.isConnected(p.id));
+    if (discoverState.filter === "nearby") people = people.filter((p) => p.county === meP.county);
+    if (discoverState.q) {
+      const q = discoverState.q.toLowerCase();
+      people = people.filter((p) => p.name.toLowerCase().includes(q) || p.bio.toLowerCase().includes(q) ||
+        p.interests.some((i) => S.interestById(i)?.label.toLowerCase().includes(q)));
+    }
+
+    const body = `
+      ${header("Discover", `Buddies who share your vibe, ${meP.name.split(" ")[0]}`)}
+      <div class="screen">
+        ${!meP.plus ? plusBanner() : ""}
+        <div class="searchbar">
+          <span class="ic">🔍</span>
+          <input id="disc-q" placeholder="Search people or interests…" value="${esc(discoverState.q)}" />
+        </div>
+        <div class="segment">
+          ${[["all", "For you"], ["nearby", "Nearby"], ["connections", "Connected"]].map(([k, l]) =>
+            `<button class="${discoverState.filter === k ? "on" : ""}" data-f="${k}">${l}</button>`).join("")}
+        </div>
+        ${people.length ? people.map(personCard).join("") : emptyState("🔍", "No buddies found", "Try a different search or filter.")}
+      </div>
+      ${tabbar("discover")}`;
+    app.innerHTML = body;
+
+    const q = document.getElementById("disc-q");
+    q.oninput = () => { discoverState.q = q.value; debounceRender(); };
+    document.querySelectorAll(".segment button").forEach((b) => b.onclick = () => { discoverState.filter = b.dataset.f; render(); });
+  });
+
+  function personCard(p) {
+    const shared = S.sharedInterests(p);
+    const connected = S.isConnected(p.id);
+    return `
+      <div class="card">
+        <div class="row" style="align-items:flex-start">
+          <div onclick="FMB.go('#/person/${p.id}')">${avatar(p, 56)}</div>
+          <div class="grow" onclick="FMB.go('#/person/${p.id}')">
+            <div class="row gap-6"><span class="bold">${esc(p.name)}</span>${p.verified ? '<span class="badge-verified">✔︎</span>' : ""}</div>
+            <div class="muted small">📍 ${esc(p.county)}</div>
+          </div>
+          <div class="center">
+            <div class="bold" style="color:var(--green);font-size:18px">${p._score}%</div>
+            <div class="tiny dim">match</div>
+          </div>
+        </div>
+        <div class="meter mt-8" style="margin-top:10px"><i style="width:${p._score}%"></i></div>
+        <p class="small muted" style="margin:10px 0">${esc(p.bio)}</p>
+        <div class="tag-row mb-8">
+          ${p.interests.slice(0, 4).map((i) => interestPill(i, { on: shared.includes(i) })).join("")}
+        </div>
+        <div class="row">
+          <button class="btn ${connected ? "btn-ghost" : "btn-primary"} grow btn-sm" onclick="FMB.connect('${p.id}', this)">
+            ${connected ? "✓ Connected" : "＋ Connect"}
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="FMB.go('#/chat/${p.id}')">💬 Message</button>
+        </div>
+      </div>`;
+  }
+
+  FMB.connect = (id, btn) => {
+    const nowConnected = S.toggleConnection(id);
+    toast(nowConnected ? "Connected! Say hi 👋" : "Removed connection");
+    if (btn) {
+      btn.className = `btn ${nowConnected ? "btn-ghost" : "btn-primary"} grow btn-sm`;
+      btn.textContent = nowConnected ? "✓ Connected" : "＋ Connect";
+    }
+  };
+
+  /* ================= PERSON DETAIL ================= */
+  route("person", (id) => {
+    const p = S.personById(id);
+    const shared = S.sharedInterests(p);
+    const score = S.matchScore(p);
+    const connected = S.isConnected(id);
+    app.innerHTML = `
+      ${subheader("Profile", "#/discover")}
+      <div class="screen">
+        <div class="center" style="padding:12px 0 4px">
+          ${avatar(p, 88)}
+          <h2 style="margin-top:12px;font-size:22px">${esc(p.name)} ${p.verified ? '<span class="badge-verified">✔︎</span>' : ""}</h2>
+          <div class="muted">📍 ${esc(p.county)}</div>
+          <div class="row" style="justify-content:center;margin-top:6px">
+            <span class="chip match">🔥 ${score}% match</span>
+            ${shared.length ? `<span class="chip tiny">${shared.length} shared interest${shared.length > 1 ? "s" : ""}</span>` : ""}
+          </div>
+        </div>
+        <div class="card"><p class="muted">${esc(p.bio)}</p></div>
+        <div class="section-title" style="margin-top:8px">Interests</div>
+        <div class="chips">${p.interests.map((i) => interestPill(i, { on: shared.includes(i) })).join("")}</div>
+        <div class="row mt-24" style="position:sticky;bottom:16px">
+          <button class="btn ${connected ? "btn-ghost" : "btn-primary"} grow" onclick="FMB.connect('${id}', this)">${connected ? "✓ Connected" : "＋ Connect"}</button>
+          <button class="btn btn-accent grow" onclick="FMB.go('#/chat/${id}')">💬 Message</button>
+        </div>
+      </div>`;
+  });
+
+  /* ================= ACTIVITIES ================= */
+  const actState = { q: "", cat: "all", scope: "discover" };
+  route("activities", () => {
+    let acts = S.upcomingActivities();
+    if (actState.cat !== "all") acts = acts.filter((a) => a.interest === actState.cat);
+    if (actState.q) {
+      const q = actState.q.toLowerCase();
+      acts = acts.filter((a) => a.title.toLowerCase().includes(q) || a.location.toLowerCase().includes(q) || a.county.toLowerCase().includes(q));
+    }
+    const cats = [["all", "🌍 All"]].concat(D.INTERESTS.filter((i) => S.get().activities.some((a) => a.interest === i.id)).map((i) => [i.id, `${i.emoji} ${i.label}`]));
+
+    app.innerHTML = `
+      ${header("Activities", "Things to do with your buddies")}
+      <div class="screen">
+        <div class="searchbar"><span class="ic">🔍</span><input id="act-q" placeholder="Search activities, places…" value="${esc(actState.q)}" /></div>
+        <div class="scroll-x">
+          ${cats.map(([k, l]) => `<button class="chip selectable ${actState.cat === k ? "on" : ""}" data-c="${k}">${l}</button>`).join("")}
+        </div>
+        ${acts.length ? acts.map(activityCard).join("") : emptyState("📅", "No activities yet", "Be the first — create one and invite your buddies!")}
+        <button class="btn btn-primary btn-block mt-16" onclick="FMB.go('#/create')">＋ Create an activity</button>
+      </div>
+      ${tabbar("activities")}`;
+    const q = document.getElementById("act-q");
+    q.oninput = () => { actState.q = q.value; debounceRender(); };
+    document.querySelectorAll("[data-c]").forEach((b) => b.onclick = () => { actState.cat = b.dataset.c; render(); });
+  });
+
+  function activityCover(interest) {
+    const it = S.interestById(interest) || { c: ["#4f46e5", "#312e81"], emoji: "📌" };
+    return `background:linear-gradient(135deg, ${it.c[0]}, ${it.c[1]});`;
+  }
+  function activityCard(a) {
+    const it = S.interestById(a.interest) || { emoji: "📌", label: "" };
+    const host = S.personById(a.hostId);
+    const joined = S.isJoined(a.id);
+    const spots = a.capacity - a.attendees.length;
+    return `
+      <div class="card card-tap" onclick="FMB.go('#/activity/${a.id}')">
+        <div class="activity-cover" style="${activityCover(a.interest)}">
+          <span class="emoji">${it.emoji}</span>
+          <span class="price-pill">${money(a.priceLRD)}</span>
+          ${a.promoted ? '<span class="price-pill" style="left:12px;top:auto;bottom:12px;right:auto;background:linear-gradient(135deg,#f59e0b,#d97706)">★ Promoted</span>' : ""}
+        </div>
+        <div class="between">
+          <div class="grow">
+            <div class="bold" style="font-size:16px">${esc(a.title)}</div>
+            <div class="meta-row">
+              <span>🗓 ${fmtWhen(a.when)}</span>
+              <span>📍 ${esc(a.county)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="muted small truncate">${esc(a.location)}</div>
+        <div class="between mt-8" style="margin-top:12px">
+          <div class="attendees">
+            ${a.attendees.slice(0, 4).map((id) => avatar(S.personById(id), 40)).join("")}
+            <span class="muted small" style="margin-left:8px">${a.attendees.length} going · ${spots > 0 ? spots + " spots" : "full"}</span>
+          </div>
+          <button class="btn ${joined ? "btn-ghost" : "btn-primary"} btn-sm" onclick="event.stopPropagation(); FMB.join('${a.id}', this)">${joined ? "✓ Going" : "Join"}</button>
+        </div>
+      </div>`;
+  }
+
+  FMB.join = (id, btn) => {
+    const a = S.activityById(id);
+    if (!S.isJoined(id) && a.attendees.length >= a.capacity) { toast("Sorry, this activity is full"); return; }
+    const joined = S.toggleJoin(id);
+    toast(joined ? "You're going! 🎉" : "You left this activity");
+    if (btn) { btn.className = `btn ${joined ? "btn-ghost" : "btn-primary"} btn-sm`; btn.textContent = joined ? "✓ Going" : "Join"; }
+    else render();
+  };
+
+  /* ================= ACTIVITY DETAIL ================= */
+  route("activity", (id) => {
+    const a = S.activityById(id);
+    if (!a) { go("#/activities"); return; }
+    const it = S.interestById(a.interest);
+    const host = S.personById(a.hostId);
+    const joined = S.isJoined(id);
+    const spots = a.capacity - a.attendees.length;
+    app.innerHTML = `
+      ${subheader("Activity", "#/activities")}
+      <div class="screen" style="padding-top:0">
+        <div class="activity-cover" style="${activityCover(a.interest)};height:150px;border-radius:0 0 var(--r-lg) var(--r-lg);margin:0 -16px 16px">
+          <span class="emoji" style="font-size:56px">${it.emoji}</span>
+          <span class="price-pill">${money(a.priceLRD)}</span>
+        </div>
+        <h2 style="font-size:22px">${esc(a.title)}</h2>
+        <div class="chips mt-8" style="margin-top:10px">${interestPill(a.interest, { on: true })}${a.promoted ? '<span class="chip tiny" style="background:var(--gold-soft);color:var(--gold)">★ Promoted</span>' : ""}</div>
+
+        <div class="card mt-16">
+          <div class="row" style="margin-bottom:12px"><div class="av-40 avatar sq" style="background:var(--brand-soft);color:var(--brand)">🗓</div><div><div class="bold">${fmtWhen(a.when)}</div><div class="muted small">${new Date(a.when).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</div></div></div>
+          <div class="row" style="margin-bottom:12px"><div class="av-40 avatar sq" style="background:var(--brand-soft);color:var(--brand)">📍</div><div><div class="bold">${esc(a.location)}</div><div class="muted small">${esc(a.county)} County</div></div></div>
+          <div class="row"><div class="av-40 avatar sq" style="background:var(--brand-soft);color:var(--brand)">👥</div><div><div class="bold">${a.attendees.length} going</div><div class="muted small">${spots > 0 ? spots + " spots left of " + a.capacity : "Fully booked"}</div></div></div>
+        </div>
+
+        <div class="section-title">About</div>
+        <p class="muted">${esc(a.desc)}</p>
+
+        <div class="section-title">Hosted by</div>
+        <div class="card card-tap row" onclick="FMB.go('#/person/${host.id}')">
+          ${avatar(host, 48)}
+          <div class="grow"><div class="bold">${esc(host.name)}${host.isMe ? " (You)" : ""}</div><div class="muted small">📍 ${esc(host.county)}</div></div>
+          ${!host.isMe ? '<span class="chip tiny">View →</span>' : ""}
+        </div>
+
+        <div class="section-title">Who's going</div>
+        <div class="chips">${a.attendees.map((pid) => { const p = S.personById(pid); return `<div class="row gap-6" style="background:var(--surface-2);padding:6px 12px 6px 6px;border-radius:999px">${avatar(p, 40)}<span class="small bold">${esc(p.name.split(" ")[0])}${p.isMe ? " (You)" : ""}</span></div>`; }).join("")}</div>
+
+        <div class="row mt-24" style="position:sticky;bottom:16px;z-index:5">
+          <button class="btn ${joined ? "btn-ghost" : "btn-primary"} grow" onclick="FMB.join('${id}', this)">${joined ? "✓ You're going" : (a.priceLRD > 0 ? "Join · " + money(a.priceLRD) : "Join this activity")}</button>
+          <button class="btn btn-accent" onclick="FMB.share('${id}')">↗</button>
+        </div>
+      </div>`;
+  });
+
+  FMB.share = (id) => {
+    const a = S.activityById(id);
+    const text = `Join me at "${a.title}" (${fmtWhen(a.when)}) on Find My Buddy!`;
+    if (navigator.share) navigator.share({ title: a.title, text }).catch(() => {});
+    else { try { navigator.clipboard.writeText(text); } catch (e) {} toast("Invite copied to clipboard 📋"); }
+  };
+
+  /* ================= CREATE ================= */
+  const draft = { title: "", interest: "", county: "", location: "", date: "", time: "17:00", capacity: "20", priceLRD: "0", desc: "", promoted: false };
+  route("create", () => {
+    if (!draft.county) draft.county = S.me().county;
+    if (!draft.interest) draft.interest = S.me().interests[0] || "football";
+    if (!draft.date) { const d = new Date(); d.setDate(d.getDate() + 3); draft.date = d.toISOString().slice(0, 10); }
+    app.innerHTML = `
+      ${header("Create Activity", "Bring buddies together")}
+      <div class="screen">
+        <div class="field"><label>Activity title</label><input class="input" id="c-title" placeholder="e.g. Saturday Beach Volleyball" value="${esc(draft.title)}" /></div>
+        <div class="field"><label>Category</label>
+          <div class="chips" id="c-interest">${D.INTERESTS.map((it) => `<button type="button" class="chip selectable ${draft.interest === it.id ? "on" : ""}" data-id="${it.id}">${it.emoji} ${it.label}</button>`).join("")}</div>
+        </div>
+        <div class="row">
+          <div class="field grow"><label>County</label><select class="input" id="c-county">${D.COUNTIES.map((c) => `<option ${c === draft.county ? "selected" : ""}>${c}</option>`).join("")}</select></div>
+        </div>
+        <div class="field"><label>Location / venue</label><input class="input" id="c-loc" placeholder="e.g. ATS Field, Sinkor" value="${esc(draft.location)}" /></div>
+        <div class="row">
+          <div class="field grow"><label>Date</label><input class="input" type="date" id="c-date" value="${draft.date}" /></div>
+          <div class="field grow"><label>Time</label><input class="input" type="time" id="c-time" value="${draft.time}" /></div>
+        </div>
+        <div class="row">
+          <div class="field grow"><label>Capacity</label><input class="input" type="number" min="2" id="c-cap" value="${esc(draft.capacity)}" /></div>
+          <div class="field grow"><label>Price (LRD)</label><input class="input" type="number" min="0" step="50" id="c-price" value="${esc(draft.priceLRD)}" /></div>
+        </div>
+        <div class="hint" style="margin-top:-8px;margin-bottom:14px">Set 0 for a free activity. Paid tickets are collected via Mobile Money at check-in.</div>
+        <div class="field"><label>Description</label><textarea class="input" id="c-desc" placeholder="What should buddies expect? What to bring?">${esc(draft.desc)}</textarea></div>
+
+        <label class="card row" style="cursor:pointer;align-items:flex-start">
+          <input type="checkbox" id="c-promote" ${draft.promoted ? "checked" : ""} style="width:20px;height:20px;margin-top:2px" />
+          <div class="grow"><div class="bold">★ Promote this activity <span class="badge-plus">L$250</span></div><div class="muted small">Boost to the top of Discover & Activities for 3× more sign-ups.</div></div>
+        </label>
+
+        <button class="btn btn-primary btn-block mt-16" id="c-submit">Publish activity 🚀</button>
+      </div>
+      ${tabbar("create")}`;
+
+    document.querySelectorAll("#c-interest .chip").forEach((c) => c.onclick = () => {
+      draft.interest = c.dataset.id;
+      document.querySelectorAll("#c-interest .chip").forEach((x) => x.classList.toggle("on", x.dataset.id === draft.interest));
+    });
+    document.getElementById("c-submit").onclick = submitActivity;
+  });
+
+  function submitActivity() {
+    const g = (id) => document.getElementById(id);
+    const title = g("c-title").value.trim();
+    const location = g("c-loc").value.trim();
+    const dateVal = g("c-date").value;
+    const timeVal = g("c-time").value || "17:00";
+    if (!title) { toast("Give your activity a title"); return; }
+    if (!location) { toast("Add a location"); return; }
+    if (!dateVal) { toast("Pick a date"); return; }
+    const when = new Date(dateVal + "T" + timeVal).getTime();
+    if (when < Date.now()) { toast("Pick a future date & time"); return; }
+    const a = S.createActivity({
+      title, interest: draft.interest, county: g("c-county").value, location,
+      when, capacity: g("c-cap").value, priceLRD: g("c-price").value,
+      desc: g("c-desc").value, promoted: g("c-promote").checked,
+    });
+    // reset draft
+    Object.assign(draft, { title: "", location: "", desc: "", promoted: false });
+    toast("Activity published! 🎉");
+    go("#/activity/" + a.id);
+  }
+
+  /* ================= MESSAGES ================= */
+  route("messages", () => {
+    const convos = S.conversations();
+    const suggestions = S.suggestedPeople().filter((p) => S.isConnected(p.id) && !S.thread(p.id).length).slice(0, 8);
+    app.innerHTML = `
+      ${header("Chats", "Talk to your buddies")}
+      <div class="screen">
+        ${S.get().connections.length === 0 ? emptyState("💬", "No connections yet", "Connect with buddies in Discover to start chatting.") : ""}
+        ${suggestions.length ? `<div class="section-title" style="margin-top:6px">Say hi 👋</div><div class="scroll-x">${suggestions.map((p) => `
+          <button class="center" style="width:76px" onclick="FMB.go('#/chat/${p.id}')">
+            ${avatar(p, 56)}<div class="tiny bold truncate mt-8" style="width:72px">${esc(p.name.split(" ")[0])}</div>
+          </button>`).join("")}</div>` : ""}
+        ${convos.length ? `<div class="section-title">Messages</div>${convos.map(convoRow).join("")}` : ""}
+      </div>
+      ${tabbar("messages")}`;
+  });
+
+  function convoRow(c) {
+    const p = S.personById(c.personId);
+    const last = c.last;
+    return `
+      <div class="card card-tap row" onclick="FMB.go('#/chat/${c.personId}')">
+        ${avatar(p, 48)}
+        <div class="grow" style="min-width:0">
+          <div class="between"><span class="bold">${esc(p.name)}</span><span class="tiny dim">${last ? relTime(last.at) : ""}</span></div>
+          <div class="muted small truncate">${last ? (last.from === "me" ? "You: " : "") + esc(last.text) : "Say hello!"}</div>
+        </div>
+      </div>`;
+  }
+
+  /* ================= CHAT ================= */
+  route("chat", (id) => {
+    const p = S.personById(id);
+    renderChat(p);
+    // subscribe for auto-replies while on this screen
+    const unsub = S.subscribe(() => { if (currentRoute().name === "chat" && currentRoute().arg === id) renderChat(p, true); });
+    chatUnsub && chatUnsub(); chatUnsub = unsub;
+  });
+  let chatUnsub = null;
+
+  function renderChat(p, keepInput) {
+    const msgs = S.thread(p.id);
+    const prevVal = keepInput ? (document.getElementById("chat-input")?.value || "") : "";
+    app.innerHTML = `
+      <div class="subheader">
+        <button class="icon-btn" onclick="FMB.go('#/messages')" aria-label="Back">‹</button>
+        <div class="row grow" onclick="FMB.go('#/person/${p.id}')" style="cursor:pointer">
+          ${avatar(p, 40)}<div><div class="bold" style="font-size:15px">${esc(p.name)}</div><div class="tiny dim">📍 ${esc(p.county)}</div></div>
+        </div>
+      </div>
+      <div class="screen" style="padding-top:8px;padding-bottom:0">
+        ${!S.isConnected(p.id) ? `<div class="card center small muted">You're not connected with ${esc(p.name.split(" ")[0])} yet. <a href="#" onclick="FMB.connect('${p.id}');FMB.go('#/chat/${p.id}');return false">Connect</a></div>` : ""}
+        <div class="thread" id="thread">
+          ${msgs.length ? msgs.map((m, i) => `
+            <div class="bubble ${m.from}">${esc(m.text)}</div>
+            ${(i === msgs.length - 1 || msgs[i + 1].from !== m.from) ? `<div class="msg-time" style="align-self:${m.from === "me" ? "flex-end" : "flex-start"}">${relTime(m.at)}</div>` : ""}
+          `).join("") : `<div class="empty" style="padding:32px"><div class="em">👋</div><div class="muted">Start the conversation with ${esc(p.name.split(" ")[0])}</div></div>`}
+        </div>
+      </div>
+      <div class="composer">
+        <input id="chat-input" placeholder="Message ${esc(p.name.split(" ")[0])}…" value="${esc(prevVal)}" />
+        <button class="send" id="chat-send" aria-label="Send">➤</button>
+      </div>`;
+    const input = document.getElementById("chat-input");
+    const send = () => { const v = input.value; if (!v.trim()) return; S.sendMessage(p.id, v); input.value = ""; };
+    document.getElementById("chat-send").onclick = send;
+    input.onkeydown = (e) => { if (e.key === "Enter") send(); };
+    const thread = document.getElementById("thread");
+    thread.scrollIntoView(false);
+    window.scrollTo(0, document.body.scrollHeight);
+    if (!keepInput) input.focus();
+  }
+
+  /* ================= PROFILE ================= */
+  route("profile", () => {
+    const me = S.me();
+    const hosted = S.myHostedActivities();
+    const joinedActs = S.myJoinedActivities();
+    app.innerHTML = `
+      ${header("Profile", "")}
+      <div class="screen">
+        <div class="center" style="padding:8px 0">
+          <div class="avatar av-88" style="background:${me.avatarColor}">${esc(initials(me.name))}</div>
+          <h2 style="margin-top:12px;font-size:22px">${esc(me.name)} ${me.plus ? '<span class="badge-plus">PLUS</span>' : ""}</h2>
+          <div class="muted">📍 ${esc(me.county)}</div>
+        </div>
+        <div class="stats mt-16">
+          <div class="stat"><b>${S.get().connections.length}</b><span>Connections</span></div>
+          <div class="stat"><b>${joinedActs.length}</b><span>Activities</span></div>
+          <div class="stat"><b>${hosted.length}</b><span>Hosting</span></div>
+        </div>
+
+        ${me.bio ? `<div class="card mt-16"><p class="muted">${esc(me.bio)}</p></div>` : ""}
+
+        <div class="between" style="margin-top:18px"><div class="section-title" style="margin:0">Interests</div><button class="btn btn-ghost btn-sm" onclick="FMB.editProfile()">Edit</button></div>
+        <div class="chips mt-8" style="margin-top:10px">${me.interests.map((i) => interestPill(i, { on: true })).join("")}</div>
+
+        ${!me.plus ? plusBanner(true) : `<div class="card row mt-16" style="background:var(--gold-soft)"><div style="font-size:28px">👑</div><div class="grow"><div class="bold">Buddy Plus active</div><div class="muted small">Enjoy unlimited connects & boosted visibility.</div></div></div>`}
+
+        <div class="section-title">Hosting</div>
+        ${hosted.length ? hosted.map(activityCard).join("") : `<div class="card muted small center">You're not hosting anything yet. <a href="#" onclick="FMB.go('#/create');return false">Create an activity →</a></div>`}
+
+        <div class="section-title">Going to</div>
+        ${joinedActs.length ? joinedActs.map(activityCard).join("") : `<div class="card muted small center">No activities joined yet.</div>`}
+
+        <div class="divider"></div>
+        <button class="btn btn-ghost btn-block" onclick="FMB.editProfile()">✏️ Edit profile</button>
+        <button class="btn btn-ghost btn-block mt-8" onclick="FMB.confirmReset()" style="color:var(--accent);margin-top:10px">↺ Reset app data</button>
+        <p class="center tiny dim mt-16">Find My Buddy · Made for Liberia 🇱🇷</p>
+      </div>
+      ${tabbar("profile")}`;
+  });
+
+  FMB.editProfile = () => {
+    const me = S.me();
+    const tmp = { interests: [...me.interests] };
+    openSheet(`
+      <h2 style="font-size:20px;margin-bottom:4px">Edit profile</h2>
+      <p class="muted small mb-16">Update your details anytime.</p>
+      <div class="field"><label>Full name</label><input class="input" id="e-name" value="${esc(me.name)}" /></div>
+      <div class="field"><label>County</label><select class="input" id="e-county">${D.COUNTIES.map((c) => `<option ${c === me.county ? "selected" : ""}>${c}</option>`).join("")}</select></div>
+      <div class="field"><label>Bio</label><textarea class="input" id="e-bio">${esc(me.bio)}</textarea></div>
+      <div class="field"><label>Interests</label><div class="chips" id="e-interests">${D.INTERESTS.map((it) => `<button type="button" class="chip selectable ${tmp.interests.includes(it.id) ? "on" : ""}" data-id="${it.id}">${it.emoji} ${it.label}</button>`).join("")}</div></div>
+      <button class="btn btn-primary btn-block" id="e-save">Save changes</button>
+    `);
+    modalRoot.querySelectorAll("#e-interests .chip").forEach((c) => c.onclick = () => {
+      const id = c.dataset.id; const i = tmp.interests.indexOf(id);
+      if (i >= 0) tmp.interests.splice(i, 1); else tmp.interests.push(id);
+      c.classList.toggle("on");
+    });
+    document.getElementById("e-save").onclick = () => {
+      const name = document.getElementById("e-name").value.trim();
+      if (!name) { toast("Name can't be empty"); return; }
+      if (tmp.interests.length < 1) { toast("Pick at least one interest"); return; }
+      S.updateProfile({ name, county: document.getElementById("e-county").value, bio: document.getElementById("e-bio").value.trim(), interests: tmp.interests });
+      closeSheet(); toast("Profile updated ✓"); render();
+    };
+  };
+
+  FMB.confirmReset = () => {
+    openSheet(`
+      <h2 style="font-size:20px">Reset app data?</h2>
+      <p class="muted mb-16" style="margin:8px 0 18px">This clears your profile, connections and activities on this device. This cannot be undone.</p>
+      <button class="btn btn-accent btn-block" id="r-yes">Yes, reset everything</button>
+      <button class="btn btn-ghost btn-block mt-8" style="margin-top:10px" onclick="FMB.closeSheet()">Cancel</button>
+    `);
+    document.getElementById("r-yes").onclick = () => { S.resetAll(); closeSheet(); onboard.step = 0; onboard.interests = []; onboard.name = ""; onboard.bio = ""; go("#/discover"); };
+  };
+  FMB.closeSheet = closeSheet;
+
+  /* ================= PREMIUM ================= */
+  function plusBanner(compact) {
+    return `
+      <div class="premium-banner" onclick="FMB.openPlus()">
+        <h3>👑 Buddy Plus</h3>
+        <p>Unlimited connects, see who viewed you, and get boosted in Discover.</p>
+        <button class="btn btn-gold btn-sm">Upgrade — L$500/mo</button>
+      </div>`;
+  }
+  FMB.openPlus = () => {
+    const me = S.me();
+    openSheet(`
+      <div class="center" style="padding:6px 0 4px"><div style="font-size:46px">👑</div><h2 style="font-size:24px">Buddy Plus</h2><p class="muted">Get the most out of Find My Buddy</p></div>
+      <div class="mt-16">
+        ${[["♾️", "Unlimited connections", "Reach out to as many buddies as you like"],
+           ["👀", "See who viewed you", "Know who's checking your profile"],
+           ["🚀", "Profile boost", "Appear higher in Discover across your county"],
+           ["★", "2 free activity promotions", "Fill your events faster every month"],
+           ["✔︎", "Verified badge", "Build trust with a verified profile"]].map(([e, t, d]) => `
+          <div class="row" style="margin-bottom:14px;align-items:flex-start"><div style="font-size:22px;width:30px">${e}</div><div class="grow"><div class="bold">${t}</div><div class="muted small">${d}</div></div></div>`).join("")}
+      </div>
+      <div class="card between" style="background:var(--brand-soft);border:none">
+        <div><div class="bold" style="font-size:18px">L$500 <span class="muted small">/ month</span></div><div class="tiny muted">Pay with MTN MoMo or Orange Money</div></div>
+        <div class="badge-plus">BEST VALUE</div>
+      </div>
+      <button class="btn btn-gold btn-block mt-8" id="plus-buy" style="margin-top:12px">${me.plus ? "You're a Plus member ✓" : "Start Buddy Plus"}</button>
+      <p class="center tiny dim mt-8" style="margin-top:12px">Cancel anytime · Secure Mobile Money checkout</p>
+    `);
+    const buy = document.getElementById("plus-buy");
+    if (me.plus) buy.disabled = true;
+    else buy.onclick = () => { S.upgradeToPlus(); closeSheet(); toast("Welcome to Buddy Plus! 👑"); render(); };
+  };
+
+  /* ================= Shared bits ================= */
+  function emptyState(em, title, sub) {
+    return `<div class="empty"><div class="em">${em}</div><h3>${esc(title)}</h3><p>${esc(sub)}</p></div>`;
+  }
+
+  /* ---------------- Render loop ---------------- */
+  let debounceTimer;
+  function debounceRender() { /* live search updates list without full re-render churn */
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(render, 220);
+  }
+
+  function render() {
+    if (!S.get().onboarded || !S.me()) { renderOnboarding(); return; }
+    const { name, arg } = currentRoute();
+    // cleanup chat subscription when leaving chat
+    if (name !== "chat" && chatUnsub) { chatUnsub(); chatUnsub = null; }
+    const fn = routes[name] || routes["discover"];
+    try { fn(arg); } catch (e) { console.error(e); routes["discover"](); }
+    if (name !== "chat") window.scrollTo(0, 0);
+  }
+
+  window.addEventListener("hashchange", render);
+  render();
+})();
+
+</script>
+</body>
+</html>
