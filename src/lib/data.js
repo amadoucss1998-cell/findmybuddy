@@ -36,12 +36,12 @@ export const categories = [
 
 export const popularIds = ["cleaning", "generator", "moving", "delivery", "plumbing", "braiding", "solar", "ac"];
 
-const firstNames = [
+export const firstNames = [
   "Musu", "Kollie", "Fatu", "Emmanuel", "Comfort", "Prince", "Hawa", "Josephine", "Moses",
   "Bendu", "Varney", "Garmai", "Augustine", "Mamie", "Sekou", "Precious", "Abraham", "Korpu",
   "Alphonso", "Satta", "Jallah", "Massa", "Patrick", "Weade",
 ];
-const lastNames = [
+export const lastNames = [
   "Kamara", "Doe", "Johnson", "Sirleaf", "Taylor", "Kollie", "Flomo", "Kpoto", "Sackor",
   "Weah", "Toe", "Gbowee", "Cooper", "Massaquoi", "Nyumah", "Kromah", "Davies", "Zinnah",
 ];
