@@ -6,6 +6,12 @@ import { backend } from "./backend";
 const uid = () => Math.random().toString(36).slice(2, 10);
 let unsubscribe = null;
 
+// Network failures surface as "Failed to fetch"; show something people understand.
+const friendly = (e) =>
+  /failed to fetch|networkerror|load failed/i.test(e?.message || "")
+    ? "No connection — check your internet and try again"
+    : e?.message || "Something went wrong";
+
 const upsert = (list, item, front = true) => {
   const i = list.findIndex((x) => x.id === item.id);
   if (i === -1) return front ? [item, ...list] : [...list, item];
@@ -24,7 +30,7 @@ export const useApp = create(
         try {
           return await fn();
         } catch (e) {
-          get().notify(e.message || "Something went wrong", "err");
+          get().notify(friendly(e), "err");
           return undefined;
         }
       };
@@ -87,7 +93,7 @@ export const useApp = create(
             if (user) await afterLogin(user);
             else set({ user: null });
           } catch (e) {
-            get().notify(e.message || "Couldn't reach the server", "err");
+            get().notify(friendly(e), "err");
           }
           set({ ready: true });
         },

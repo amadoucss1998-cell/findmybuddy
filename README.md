@@ -40,7 +40,7 @@ The app talks to Supabase for phone sign-in, the Postgres database, row-level se
 
 1. **Create the database.** Open Supabase → **SQL Editor**, paste the contents of [`supabase/setup.sql`](supabase/setup.sql) and click **Run**. This creates the tables, security rules and booking/wallet functions, and seeds the 22 categories, 36 Taskers and promo codes. If you use the Supabase CLI, `supabase db push` applies the same files from `supabase/migrations/`.
 2. **Turn on phone sign-in.** Go to **Authentication → Sign In / Providers → Phone**, enable it and connect an SMS provider such as Twilio, MessageBird or Vonage. Check that the provider delivers to Liberian numbers (+231). While testing, you can add **test phone numbers with fixed codes** on the same page, so no SMS is sent.
-3. **Add your keys.** Copy `.env.example` to `.env.local` and fill in the Project URL and the **anon** key from **Settings → API**. On Vercel, add the same two variables under Project → Settings → Environment Variables.
+3. **Keys.** The project URL and **anon** key are in `.env.production`, which production builds use. The anon key is meant to be public, because row-level security protects the data. For local development, copy `.env.example` to `.env.local`. Never put the `service_role` key in this app.
 
 ### How it's secured
 
@@ -64,3 +64,14 @@ npm run build      # production build in dist/
 npm run test:db    # runs the Supabase migrations in embedded Postgres (PGlite) and tests RLS + functions
 npm run gen:seed   # regenerate the seed migration + supabase/setup.sql after editing src/lib/data.js
 ```
+
+## Deploy to Vercel
+
+1. Push this repo to GitHub (already done if you're reading this there).
+2. In Vercel, click **Add New → Project** and import the repo. Vercel reads `vercel.json`: framework Vite, `npm ci`, `npm run build`, output `dist/`. You don't need to change any settings.
+3. Click **Deploy**. Supabase settings come from `.env.production`. To point at a different project, set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` under Project → Settings → Environment Variables; those override the file.
+4. Before real users sign up, finish the Supabase setup above: run `setup.sql`, turn on Phone auth with an SMS provider, and set `demo` to `false`.
+
+`vercel.json` also sets long-term caching for hashed assets, basic security headers, and a fallback to `index.html` so deep links work.
+
+Deploy from the CLI instead: `npm i -g vercel && vercel --prod`.
