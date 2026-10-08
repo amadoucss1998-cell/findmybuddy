@@ -128,7 +128,9 @@ function JobCard({ job, onAccept, onDecline }) {
 }
 
 function TaskerJobs() {
-  const { jobRequests, acceptedJobs, acceptJob, declineJob, notify } = useApp();
+  const { jobs, respondJob, notify } = useApp();
+  const jobRequests = jobs.filter((j) => j.status === "open");
+  const acceptedJobs = jobs.filter((j) => ["accepted", "completed"].includes(j.status));
   const [seg, setSeg] = useState("Requests");
   return (
     <>
@@ -144,11 +146,8 @@ function TaskerJobs() {
                 <JobCard
                   key={j.id}
                   job={j}
-                  onAccept={() => {
-                    acceptJob(j.id);
-                    notify(`Job accepted — ${fmtUSD(j.pay)} added to schedule`);
-                  }}
-                  onDecline={() => declineJob(j.id)}
+                  onAccept={async () => (await respondJob(j.id, "accept")) && notify(`Job accepted — ${fmtUSD(j.pay)} added to schedule`)}
+                  onDecline={() => respondJob(j.id, "decline")}
                 />
               ))
             )
@@ -162,7 +161,16 @@ function TaskerJobs() {
                   <div className="font-bold">{catById(j.cat).name}</div>
                   <div className="text-xs text-mute">{j.when} · {j.area}</div>
                 </div>
-                <div className="font-extrabold text-green-600">{fmtUSD(j.pay)}</div>
+                <div className="text-right">
+                  <div className="font-extrabold text-green-600">{fmtUSD(j.pay)}</div>
+                  {j.status === "accepted" ? (
+                    <Tap onClick={() => respondJob(j.id, "complete")} className="mt-1 text-[11px] font-bold text-white bg-brand rounded-full px-2.5 py-1">
+                      Mark done
+                    </Tap>
+                  ) : (
+                    <span className="text-[11px] font-bold text-green-600">Completed</span>
+                  )}
+                </div>
               </motion.div>
             ))
           )}

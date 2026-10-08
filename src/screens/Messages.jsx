@@ -13,7 +13,7 @@ function ago(ts) {
 export default function Messages() {
   const { chats, push, setTab, favorites } = useApp();
   const threads = Object.entries(chats)
-    .filter(([, m]) => m.length)
+    .filter(([id, m]) => m.length && taskerById(id))
     .sort((a, b) => b[1].at(-1).at - a[1].at(-1).at);
   const favs = favorites.map(taskerById).filter(Boolean);
 
@@ -46,7 +46,7 @@ export default function Messages() {
           {threads.map(([id, msgs]) => {
             const t = taskerById(id);
             const last = msgs.at(-1);
-            const unread = last.from === "them";
+            const unread = msgs.some((m) => m.from === "them" && !m.read);
             return (
               <motion.div key={id} variants={itemV}>
                 <Tap as="div" scale={0.98} onClick={() => push("chat", { id })} className="flex items-center gap-3 p-3 rounded-2xl active:bg-white dark:active:bg-night-2">

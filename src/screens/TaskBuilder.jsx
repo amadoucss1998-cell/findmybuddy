@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button, CatTile, Header, Icon, Tap } from "../components/ui";
-import { useApp, catById } from "../lib/store";
-import { neighborhoods, taskSizes, timeSlots, taskersFor } from "../lib/data";
+import { useApp, catById, taskersFor } from "../lib/store";
+import { neighborhoods, taskSizes, timeSlots } from "../lib/data";
 
 const steps = ["Location", "Task size", "Details", "Date & time"];
 

@@ -2,12 +2,12 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Avatar, CatTile, Icon, Tap } from "../components/ui";
 import { useApp, catById } from "../lib/store";
-import { categories, taskers } from "../lib/data";
+import { categories } from "../lib/data";
 
 const trending = ["Generator repair", "Deep cleaning", "Braiding", "Solar install", "Moving truck", "AC gas refill"];
 
 export default function Search() {
-  const { pop, push } = useApp();
+  const { pop, push, taskers } = useApp();
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
 
@@ -19,7 +19,7 @@ export default function Search() {
       cats: categories.filter((c) => match(`${c.name} ${c.desc}`)),
       people: taskers.filter((t) => match(`${t.name} ${t.skills.map((s) => catById(s).name).join(" ")} ${t.area}`)).slice(0, 8),
     };
-  }, [query]);
+  }, [query, taskers]);
 
   return (
     <div className="h-full flex flex-col" style={{ paddingTop: "var(--top)" }}>

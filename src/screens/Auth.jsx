@@ -3,44 +3,70 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button, Icon, Tap } from "../components/ui";
 import { useApp } from "../lib/store";
 import { neighborhoods } from "../lib/data";
+import { normalizePhone } from "../lib/backend/shape";
+
+const DIGITS = 6;
 
 export default function Auth() {
-  const [step, setStep] = useState(0);
+  // A signed-in user without a profile name resumes at the profile step.
+  const [step, setStep] = useState(() => (useApp.getState().user ? 2 : 0));
   const [phone, setPhone] = useState("");
-  const [code, setCode] = useState(["", "", "", ""]);
+  const [code, setCode] = useState(Array(DIGITS).fill(""));
+  const [devCode, setDevCode] = useState(null);
   const [name, setName] = useState("");
   const [area, setArea] = useState("Sinkor");
   const [role, setRole] = useState("client");
-  const [sending, setSending] = useState(false);
+  const [busy, setBusy] = useState(false);
   const refs = useRef([]);
-  const login = useApp((s) => s.login);
-  const update = useApp((s) => s.update);
-  const notify = useApp((s) => s.notify);
+  const { sendOtp, verifyOtp, saveProfile, notify, live } = useApp();
 
-  const validPhone = phone.replace(/\D/g, "").length >= 9;
+  const e164 = normalizePhone(phone);
 
-  const sendCode = () => {
-    setSending(true);
-    setTimeout(() => {
-      setSending(false);
-      setStep(1);
-      notify("Code sent by SMS — use 1847");
-    }, 900);
+  const sendCode = async () => {
+    setBusy(true);
+    const res = await sendOtp(e164);
+    setBusy(false);
+    if (!res) return;
+    setCode(Array(DIGITS).fill(""));
+    setDevCode(res.devCode || null);
+    setStep(1);
+    notify(res.devCode ? `Demo code: ${res.devCode}` : "Code sent by SMS");
+  };
+
+  const verify = async (digits) => {
+    setBusy(true);
+    const user = await verifyOtp(e164, digits);
+    setBusy(false);
+    if (!user) {
+      setCode(Array(DIGITS).fill(""));
+      refs.current[0]?.focus();
+      return;
+    }
+    if (user.name) {
+      notify(`Welcome back, ${user.name.split(" ")[0]}!`);
+      useApp.getState().update({ tab: "home" });
+    } else setStep(2);
   };
 
   const setDigit = (k, v) => {
-    const d = v.replace(/\D/g, "").slice(-1);
+    const d = v.replace(/\D/g, "");
     const next = [...code];
-    next[k] = d;
+    if (d.length > 1) {
+      // Pasted / autofilled code.
+      d.slice(0, DIGITS).split("").forEach((c, i) => (next[i] = c));
+    } else next[k] = d;
     setCode(next);
-    if (d && k < 3) refs.current[k + 1]?.focus();
-    if (next.every(Boolean)) setTimeout(() => setStep(2), 350);
+    if (d && k < DIGITS - 1) refs.current[Math.min(k + d.length, DIGITS - 1)]?.focus();
+    if (next.every(Boolean)) verify(next.join(""));
   };
 
-  const finish = () => {
-    login({ name: name.trim() || "Friend", phone: `+231 ${phone}`, area });
-    update({ mode: role, tab: "home" });
-    notify(role === "tasker" ? "Welcome, Tasker! Let's start earning 💪" : `Welcome to LoneStar, ${name.split(" ")[0] || "friend"}!`);
+  const finish = async () => {
+    setBusy(true);
+    const user = await saveProfile({ name: name.trim(), area, role });
+    setBusy(false);
+    if (!user) return;
+    useApp.getState().update({ tab: "home" });
+    notify(role === "tasker" ? "Welcome, Tasker! Let's start earning 💪" : `Welcome to LoneStar, ${name.split(" ")[0]}!`);
   };
 
   const panes = [
@@ -60,9 +86,9 @@ export default function Auth() {
           className="flex-1 min-w-0 h-16 px-4 rounded-2xl bg-white dark:bg-night-2 border-2 border-slate-200 dark:border-night-3 focus:border-brand outline-none text-lg font-bold tracking-wide"
         />
       </div>
-      <p className="text-xs text-mute mt-3">Works with Orange (077) and Lonestar MTN (088) numbers.</p>
-      <Button className="mt-8" disabled={!validPhone || sending} onClick={sendCode}>
-        {sending ? (
+      <p className="text-xs text-mute mt-3">Works with Orange (077) and Lonestar MTN (088) numbers.{!live && " Running in local demo mode — no SMS is sent."}</p>
+      <Button className="mt-8" disabled={!e164 || busy} onClick={sendCode}>
+        {busy ? (
           <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }} className="inline-block w-5 h-5 border-2 border-white/40 border-t-white rounded-full" />
         ) : (
           "Send code"
@@ -71,8 +97,8 @@ export default function Auth() {
     </div>,
     <div key="1">
       <h1 className="text-[30px] font-extrabold leading-tight">Enter the code</h1>
-      <p className="text-mute mt-2">Sent to +231 {phone}. (Demo code: 1847 — any 4 digits work)</p>
-      <div className="mt-8 flex gap-3 justify-between">
+      <p className="text-mute mt-2">Sent to {e164}.{devCode && <> Demo mode — your code is <b className="text-brand">{devCode}</b></>}</p>
+      <div className="mt-8 flex gap-2 justify-between">
         {code.map((d, k) => (
           <motion.input
             key={k}
@@ -83,11 +109,13 @@ export default function Auth() {
             onChange={(e) => setDigit(k, e.target.value)}
             onKeyDown={(e) => e.key === "Backspace" && !d && k > 0 && refs.current[k - 1]?.focus()}
             animate={{ scale: d ? [1, 1.12, 1] : 1, borderColor: d ? "#1E4FD8" : "#e2e8f0" }}
-            className="w-[68px] h-[76px] text-center text-3xl font-extrabold rounded-2xl bg-white dark:bg-night-2 border-2 outline-none"
+            disabled={busy}
+            autoComplete={k === 0 ? "one-time-code" : "off"}
+            className="w-[46px] h-[60px] text-center text-2xl font-extrabold rounded-2xl bg-white dark:bg-night-2 border-2 outline-none disabled:opacity-50"
           />
         ))}
       </div>
-      <button className="mt-6 text-sm font-bold text-brand" onClick={() => notify("New code sent")}>
+      <button className="mt-6 text-sm font-bold text-brand" onClick={sendCode} disabled={busy}>
         Resend code
       </button>
     </div>,
@@ -137,7 +165,7 @@ export default function Auth() {
           </Tap>
         ))}
       </div>
-      <Button className="mt-8" disabled={!name.trim()} onClick={finish}>
+      <Button className="mt-8" disabled={!name.trim() || busy} onClick={finish}>
         Continue
       </Button>
     </div>,

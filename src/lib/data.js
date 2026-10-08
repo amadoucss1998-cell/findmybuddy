@@ -123,8 +123,6 @@ export const taskers = Array.from({ length: 36 }, (_, i) => {
   };
 });
 
-export const taskersFor = (catId) => taskers.filter((t) => t.skills.includes(catId));
-
 // Hourly rate a Tasker charges for a given category.
 export const rateFor = (t, catId) => {
   const c = categories.find((x) => x.id === (catId || t.skills[0]));

@@ -133,7 +133,7 @@ export default function TaskerProfile({ id, cat }) {
           </div>
           <div className="mt-2 rounded-2xl bg-white dark:bg-night-2 p-4">
             {[5, 4, 3, 2, 1].map((s, i) => {
-              const pct = s === 5 ? 82 : s === 4 ? 14 : s === 3 ? 3 : 1;
+              const pct = Math.round((t.reviews.filter((r) => r.rating === s).length / Math.max(1, t.reviews.length)) * 100);
               return (
                 <div key={s} className="flex items-center gap-2 text-xs my-1">
                   <span className="w-3 font-bold">{s}</span>

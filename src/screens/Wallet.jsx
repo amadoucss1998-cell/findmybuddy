@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Button, Header, Icon, Sheet, Tap } from "../components/ui";
 import { useApp } from "../lib/store";
@@ -48,11 +48,17 @@ function TiltCard({ wallet }) {
 }
 
 export default function Wallet() {
-  const { wallet, update, notify, bookings } = useApp();
+  const { user, topup, notify, walletActivity } = useApp();
+  const wallet = user?.wallet || 0;
+  const [activity, setActivity] = useState(null);
+  const loadActivity = () => walletActivity().then((a) => a && setActivity(a));
+  useEffect(() => {
+    loadActivity();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [topUp, setTopUp] = useState(false);
   const [amt, setAmt] = useState(10);
   const [method, setMethod] = useState("orange");
-  const paid = bookings.filter((b) => b.status !== "cancelled");
 
   return (
     <div className="h-full flex flex-col" style={{ paddingTop: "var(--top)" }}>
@@ -80,7 +86,9 @@ export default function Wallet() {
         </div>
         <h3 className="px-5 font-extrabold mt-6 mb-2">Activity</h3>
         <div className="mx-5 rounded-3xl bg-white dark:bg-night-2 divide-y divide-slate-100 dark:divide-night-3">
-          {[...paid.map((b) => ({ k: b.id, t: b.categoryName, s: b.payment, v: -b.total })), { k: "w", t: "Welcome bonus", s: "LoneStar", v: 25 }].map((r) => (
+          {activity === null && <div className="p-4 text-sm text-mute">Loading…</div>}
+          {activity?.length === 0 && <div className="p-4 text-sm text-mute">No activity yet</div>}
+          {(activity || []).map((x) => ({ k: x.id, t: x.title, s: x.sub, v: x.amount })).map((r) => (
             <div key={r.k} className="flex items-center gap-3 p-4">
               <div className={`w-10 h-10 rounded-xl grid place-items-center ${r.v > 0 ? "bg-green-500/10 text-green-600" : "bg-slate-100 dark:bg-night-3"}`}>
                 <Icon name={r.v > 0 ? "Gift" : "Receipt"} size={18} />
@@ -120,9 +128,10 @@ export default function Wallet() {
         </div>
         <Button
           className="mt-6"
-          onClick={() => {
-            update({ wallet: wallet + amt });
+          onClick={async () => {
+            if ((await topup(amt, method)) === undefined) return;
             setTopUp(false);
+            loadActivity();
             notify(`${fmtUSD(amt)} added via ${paymentMethods.find((p) => p.id === method).name}`);
           }}
         >

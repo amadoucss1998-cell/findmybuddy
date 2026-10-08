@@ -7,24 +7,25 @@ const quick = ["Are you on your way?", "Please call when you reach", "How much f
 
 export default function Chat({ id }) {
   const t = taskerById(id);
-  const { chats, sendMessage, pop, notify } = useApp();
+  const { chats, sendMessage, pop, notify, typing: typingMap, markThreadRead } = useApp();
   const msgs = chats[id] || [];
+  const typing = !!typingMap[id];
   const [text, setText] = useState("");
-  const [typing, setTyping] = useState(false);
   const end = useRef(null);
-  const lastCount = useRef(msgs.length);
+  const unread = msgs.some((m) => m.from === "them" && !m.read);
 
   useEffect(() => {
     end.current?.scrollIntoView({ behavior: "smooth" });
-    if (msgs.length > lastCount.current && msgs.at(-1)?.from === "them") setTyping(false);
-    lastCount.current = msgs.length;
-  }, [msgs.length]);
+  }, [msgs.length, typing]);
+
+  useEffect(() => {
+    if (unread) markThreadRead(id);
+  }, [unread, id, markThreadRead]);
 
   const send = (v = text) => {
     if (!v.trim()) return;
     sendMessage(id, v.trim());
     setText("");
-    setTimeout(() => setTyping(true), 500);
   };
 
   return (

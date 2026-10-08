@@ -84,7 +84,7 @@ function StatusBar() {
 function TabBar() {
   const { tab, setTab, mode, chats, bookings } = useApp();
   const tabs = mode === "tasker" ? taskerTabs : clientTabs;
-  const unread = Object.values(chats).filter((c) => c.at(-1)?.from === "them").length;
+  const unread = Object.values(chats).filter((c) => c.some((m) => m.from === "them" && !m.read)).length;
   const active = bookings.filter((b) => !["completed", "cancelled"].includes(b.status)).length;
   return (
     <div className="absolute bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-night/95 backdrop-blur-xl border-t border-slate-200/60 dark:border-night-3 pb-6 pt-2 px-3">
@@ -201,13 +201,16 @@ function Device({ children, desktop, dark }) {
 
 export default function App() {
   const desktop = useIsDesktop();
-  const { onboarded, user, dark } = useApp();
+  const { onboarded, user, dark, ready, boot } = useApp();
   const [splash, setSplash] = useState(true);
+  useEffect(() => {
+    boot();
+  }, [boot]);
 
   let content;
-  if (splash) content = <Splash key="splash" onDone={() => setSplash(false)} />;
+  if (splash || !ready) content = <Splash key="splash" onDone={() => setSplash(false)} />;
   else if (!onboarded) content = <Onboarding key="onb" />;
-  else if (!user) content = <Auth key="auth" />;
+  else if (!user?.name) content = <Auth key="auth" />; // signed-in users without a name finish their profile
   else content = <Main key="main" />;
 
   return (

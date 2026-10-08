@@ -4,12 +4,15 @@ import { CatTile, Icon, Tap } from "../components/ui";
 import { useApp, catById } from "../lib/store";
 import { fmtLRD, fmtUSD } from "../lib/data";
 
-const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
 export default function TaskerHome() {
-  const { user, taskerOnline, update, earnings, jobRequests, acceptedJobs, setTab, notify } = useApp();
+  const { user, saveProfile, taskerDash, jobs, setTab, notify, cashOut } = useApp();
+  const taskerOnline = user?.taskerOnline;
+  const days = taskerDash?.week || [];
+  const earnings = days.map((d) => d.amount);
   const week = earnings.reduce((a, b) => a + b, 0);
-  const max = Math.max(...earnings);
+  const max = Math.max(1, ...earnings);
+  const jobRequests = jobs.filter((j) => j.status === "open");
+  const acceptedJobs = jobs.filter((j) => j.status === "accepted");
 
   return (
     <div className="h-full scroll-y pb-32">
@@ -21,8 +24,9 @@ export default function TaskerHome() {
           </div>
           <Tap
             onClick={() => {
-              update({ taskerOnline: !taskerOnline });
-              notify(taskerOnline ? "You're offline — no new requests" : "You're online — requests incoming!");
+              saveProfile({ taskerOnline: !taskerOnline }).then(
+                (u) => u && notify(taskerOnline ? "You're offline — no new requests" : "You're online — requests incoming!")
+              );
             }}
             className={`h-10 pl-2 pr-4 rounded-full flex items-center gap-2 font-bold text-sm ${taskerOnline ? "bg-green-500" : "bg-white/15"}`}
           >
@@ -42,8 +46,13 @@ export default function TaskerHome() {
             <motion.div key={week} initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-[40px] font-extrabold leading-none mt-1">
               {fmtUSD(week)}
             </motion.div>
-            <div className="text-sm text-white/60 mt-1">≈ {fmtLRD(week)}</div>
-            <Tap onClick={() => notify("Cash-out sent to Orange Money 077•••4821")} className="mt-4 h-10 px-4 rounded-full bg-white text-navy font-extrabold text-sm inline-flex items-center gap-2">
+            <div className="text-sm text-white/60 mt-1">≈ {fmtLRD(week)} · {fmtUSD(taskerDash?.available || 0)} available</div>
+            <Tap
+              onClick={async () => {
+                const amount = await cashOut();
+                if (amount) notify(`${fmtUSD(amount)} sent to Orange Money`);
+              }}
+              className="mt-4 h-10 px-4 rounded-full bg-white text-navy font-extrabold text-sm inline-flex items-center gap-2">
               <Icon name="Banknote" size={16} /> Cash out
             </Tap>
           </div>
@@ -56,19 +65,19 @@ export default function TaskerHome() {
       <div className="mx-5 mt-5 rounded-3xl bg-white dark:bg-night-2 p-5">
         <div className="flex justify-between items-center">
           <h2 className="font-extrabold">Weekly earnings</h2>
-          <span className="text-xs font-bold text-green-600 bg-green-500/10 px-2 py-1 rounded-full">▲ 18% vs last week</span>
+          <span className="text-xs font-bold text-green-600 bg-green-500/10 px-2 py-1 rounded-full">{taskerDash?.completed || 0} job{taskerDash?.completed === 1 ? "" : "s"} completed</span>
         </div>
         <div className="flex items-end gap-2.5 h-36 mt-4">
           {earnings.map((v, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
-              <span className="text-[10px] font-bold text-mute">${v}</span>
+              <span className="text-[10px] font-bold text-mute">${Math.round(v)}</span>
               <motion.div
-                className={`w-full rounded-xl ${i === 5 ? "bg-gradient-to-t from-brand to-brand-2" : "bg-brand/20"}`}
+                className={`w-full rounded-xl ${i === days.length - 1 ? "bg-gradient-to-t from-brand to-brand-2" : "bg-brand/20"}`}
                 initial={{ height: 0 }}
-                animate={{ height: `${(v / max) * 100}%` }}
+                animate={{ height: `${Math.max(4, (v / max) * 100)}%` }}
                 transition={{ delay: 0.2 + i * 0.06, type: "spring", stiffness: 120, damping: 14 }}
               />
-              <span className="text-[10px] font-bold text-mute">{days[i]}</span>
+              <span className="text-[10px] font-bold text-mute">{days[i].day}</span>
             </div>
           ))}
         </div>
@@ -76,9 +85,9 @@ export default function TaskerHome() {
 
       <div className="mx-5 mt-4 grid grid-cols-3 gap-3">
         {[
-          ["Star", "4.9", "Rating", "#FFB020"],
-          ["CheckCircle2", "96%", "Acceptance", "#22C55E"],
-          ["Flame", "12", "Day streak", "#FF4D5E"],
+          ["CheckCircle2", taskerDash?.acceptance != null ? `${taskerDash.acceptance}%` : "—", "Acceptance", "#22C55E"],
+          ["Briefcase", String(acceptedJobs.length), "Scheduled", "#1E4FD8"],
+          ["Flame", String(taskerDash?.completed || 0), "Completed", "#FF4D5E"],
         ].map(([ic, v, l, c], i) => (
           <motion.div key={l} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 + i * 0.08 }} className="rounded-2xl bg-white dark:bg-night-2 p-3 text-center">
             <Icon name={ic} size={20} style={{ color: c }} className="mx-auto" />

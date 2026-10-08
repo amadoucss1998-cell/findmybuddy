@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Avatar, Button, Chip, Header, Icon, Price, Tap } from "../components/ui";
 import { useApp, catById } from "../lib/store";
-import { rateFor, taskers, taskersFor } from "../lib/data";
+import { rateFor } from "../lib/data";
 
 const sorts = [
   { id: "rec", label: "Recommended", icon: "Sparkles" },
@@ -13,13 +13,13 @@ const sorts = [
 ];
 
 export default function TaskerList({ cat }) {
-  const { push, draft, favorites, toggleFav } = useApp();
+  const { push, draft, favorites, toggleFav, taskers } = useApp();
   const [sort, setSort] = useState("rec");
   const [onlineOnly, setOnlineOnly] = useState(false);
   const category = cat ? catById(cat) : null;
 
   const list = useMemo(() => {
-    let l = cat ? taskersFor(cat) : [...taskers];
+    let l = cat ? taskers.filter((t) => t.skills.includes(cat)) : [...taskers];
     if (onlineOnly) l = l.filter((t) => t.online);
     if (sort === "elite") l = l.filter((t) => t.elite);
     const by = {
@@ -30,7 +30,7 @@ export default function TaskerList({ cat }) {
       elite: (a, b) => b.rating - a.rating,
     }[sort];
     return [...l].sort(by);
-  }, [cat, sort, onlineOnly]);
+  }, [cat, sort, onlineOnly, taskers]);
 
   return (
     <div className="h-full flex flex-col" style={{ paddingTop: "var(--top)" }}>

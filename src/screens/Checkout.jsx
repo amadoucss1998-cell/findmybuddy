@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { Avatar, Header, Icon, Tap, Price } from "../components/ui";
 import { useApp, taskerById } from "../lib/store";
@@ -40,38 +40,67 @@ function SlideToBook({ onDone, label }) {
 
 export default function Checkout({ taskerId }) {
   const t = taskerById(taskerId);
-  const { draft, addBooking, replace, notify, wallet } = useApp();
+  const { draft, createBooking, quote, replace, notify, user } = useApp();
+  const wallet = user?.wallet || 0;
   const [pay, setPay] = useState("orange");
   const [code, setCode] = useState("");
-  const [applied, setApplied] = useState(false);
+  const [promo, setPromo] = useState(null); // applied code
   const [useWallet, setUseWallet] = useState(false);
-  const rate = draft ? rateFor(t, draft.categoryId) : t.rate;
+  const [busy, setBusy] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  // Local estimate shown instantly; replaced by the server's quote as soon as it arrives.
+  const rate = draft ? rateFor(t, draft.categoryId) : 0;
   const hours = taskSizes.find((s) => s.id === draft?.size)?.hours || 2;
-  const subtotal = rate * hours;
-  const fee = Math.round(subtotal * 0.07 * 100) / 100;
-  const discount = applied ? 5 : 0;
-  const credit = useWallet ? Math.min(wallet, subtotal + fee - discount) : 0;
-  const total = Math.max(0, subtotal + fee - discount - credit);
+  const estimate = { rate, hours, subtotal: rate * hours, fee: Math.round(rate * hours * 7) / 100, discount: 0, credit: 0 };
+  estimate.total = estimate.subtotal + estimate.fee;
+  const [q, setQ] = useState(null);
+  const shown = q || estimate;
+  const { subtotal, fee, discount, credit, total } = shown;
+
+  useEffect(() => {
+    if (!draft) return;
+    let alive = true;
+    quote({ taskerId, categoryId: draft.categoryId, size: draft.size, promoCode: promo, useWallet })
+      .then((res) => {
+        if (!alive) return;
+        if (promo && res.promo && !res.promo.valid) {
+          notify(res.promo.reason, "err");
+          setPromo(null);
+          return;
+        }
+        setQ(res);
+      })
+      .catch((e) => alive && notify(e.message, "err"));
+    return () => {
+      alive = false;
+    };
+  }, [taskerId, draft, promo, useWallet, quote, notify]);
 
   if (!draft) return null;
 
-  const confirm = () => {
-    const id = addBooking({
+  const applyPromo = () => {
+    if (!code.trim()) return;
+    setPromo(code.trim());
+  };
+
+  const confirm = async () => {
+    setBusy(true);
+    const b = await createBooking({
       taskerId,
       categoryId: draft.categoryId,
-      categoryName: draft.categoryName,
+      size: draft.size,
       area: draft.area,
       address: draft.address,
       details: draft.details,
       date: draft.date,
       slot: draft.slot,
-      hours,
-      rate,
-      total,
-      payment: paymentMethods.find((p) => p.id === pay).name,
+      paymentMethod: pay,
+      promoCode: promo,
+      useWallet,
     });
-    if (credit) useApp.setState((s) => ({ wallet: s.wallet - credit }));
-    replace("confirmed", { id });
+    setBusy(false);
+    if (b) replace("confirmed", { id: b.id });
+    else setAttempt((n) => n + 1); // reset the slider so they can retry
   };
 
   return (
@@ -87,7 +116,7 @@ export default function Checkout({ taskerId }) {
                 <Icon name="Star" size={12} className="fill-gold text-gold" /> {t.rating} · {t.jobs} tasks
               </div>
             </div>
-            <Price usd={rate} small />
+            <Price usd={shown.rate} small />
           </div>
           <div className="mt-4 space-y-3 text-sm">
             {[
@@ -147,12 +176,7 @@ export default function Checkout({ taskerId }) {
             className="flex-1 h-12 px-4 rounded-2xl bg-white dark:bg-night-2 outline-none font-semibold text-sm border-2 border-transparent focus:border-brand"
           />
           <Tap
-            onClick={() => {
-              if (code === "LIB5") {
-                setApplied(true);
-                notify("Promo applied — $5 off!");
-              } else notify("Invalid promo code", "err");
-            }}
+            onClick={applyPromo}
             className="h-12 px-5 rounded-2xl bg-navy text-white font-bold text-sm"
           >
             Apply
@@ -160,9 +184,9 @@ export default function Checkout({ taskerId }) {
         </div>
 
         <div className="rounded-3xl bg-white dark:bg-night-2 p-4 text-sm space-y-2">
-          <Row label={`${fmtUSD(rate)}/hr × ${hours} hrs`} value={fmtUSD(subtotal)} />
+          <Row label={`${fmtUSD(shown.rate)}/hr × ${shown.hours} hrs`} value={fmtUSD(subtotal)} />
           <Row label="Trust & Support fee" value={fmtUSD(fee)} />
-          {applied && <Row label="Promo LIB5" value={`−${fmtUSD(discount)}`} accent />}
+          {discount > 0 && <Row label={`Promo ${q?.promo?.code || ""}`} value={`−${fmtUSD(discount)}`} accent />}
           {credit > 0 && <Row label="LoneStar credit" value={`−${fmtUSD(credit)}`} accent />}
           <div className="border-t border-dashed border-slate-200 dark:border-night-3 pt-2 flex justify-between items-end">
             <span className="font-extrabold">Estimated total</span>
@@ -179,7 +203,7 @@ export default function Checkout({ taskerId }) {
         </p>
       </div>
       <div className="px-5 pb-8 pt-3 glass">
-        <SlideToBook onDone={confirm} label={`Slide to book · ${fmtUSD(total)}`} />
+        <SlideToBook key={attempt} onDone={confirm} label={busy ? "Booking…" : `Slide to book · ${fmtUSD(total)}`} />
       </div>
     </div>
   );

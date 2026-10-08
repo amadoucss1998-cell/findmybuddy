@@ -28,13 +28,15 @@ function Row({ icon, label, sub, onClick, right, color = "#1E4FD8" }) {
 }
 
 export default function Profile() {
-  const { user, mode, dark, update, logout, push, wallet, bookings, notify, setTab } = useApp();
+  const { user, mode, dark, update, logout, push, bookings, notify, setTab, saveProfile, live } = useApp();
+  const wallet = user?.wallet || 0;
   const [confirmOut, setConfirmOut] = useState(false);
   const done = bookings.filter((b) => b.status === "completed").length;
 
-  const switchMode = () => {
+  const switchMode = async () => {
     const next = mode === "tasker" ? "client" : "tasker";
-    update({ mode: next, tab: "home", stack: [] });
+    if (!(await saveProfile({ role: next }))) return;
+    update({ tab: "home", stack: [] });
     notify(next === "tasker" ? "Switched to Tasker mode" : "Switched to Client mode");
   };
 
@@ -92,7 +94,7 @@ export default function Profile() {
         <Button variant="danger" icon="LogOut" onClick={() => setConfirmOut(true)}>
           Log out
         </Button>
-        <p className="text-center text-[11px] text-mute mt-4">LoneStar Tasks v1.0 · Made with ❤️ in Monrovia 🇱🇷</p>
+        <p className="text-center text-[11px] text-mute mt-4">LoneStar Tasks v1.0 · {live ? "Connected to Supabase" : "Local demo mode"} · Made with ❤️ in Monrovia 🇱🇷</p>
       </div>
 
       <Sheet open={confirmOut} onClose={() => setConfirmOut(false)} title="Log out?">
@@ -101,7 +103,7 @@ export default function Profile() {
           <Button variant="ghost" onClick={() => setConfirmOut(false)}>
             Cancel
           </Button>
-          <Button variant="primary" className="!bg-flag" onClick={logout}>
+          <Button variant="primary" className="!bg-flag" onClick={() => { setConfirmOut(false); logout(); }}>
             Log out
           </Button>
         </div>

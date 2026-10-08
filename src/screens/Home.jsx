@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Avatar, CatTile, Icon, Section, Sheet, Stars, Tap, itemV, listV, Price } from "../components/ui";
 import { Hero3D } from "../components/three";
 import { useApp, catById, taskerById } from "../lib/store";
-import { categories, neighborhoods, popularIds, promos, rateFor, taskers } from "../lib/data";
+import { categories, neighborhoods, popularIds, promos, rateFor } from "../lib/data";
 
 const statusLabel = { confirmed: "Confirmed", on_the_way: "Tasker on the way", in_progress: "In progress" };
 
@@ -103,7 +103,7 @@ export function TaskerCard({ t, cat }) {
 }
 
 export default function Home() {
-  const { user, push, notifs, bookings, update } = useApp();
+  const { user, push, notifs, bookings, saveProfile, taskers } = useApp();
   const [areaOpen, setAreaOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const unread = notifs.filter((n) => !n.read).length;
@@ -265,7 +265,7 @@ export default function Home() {
             <Tap
               key={n}
               onClick={() => {
-                update({ user: { ...user, area: n } });
+                saveProfile({ area: n });
                 setAreaOpen(false);
               }}
               className={`h-12 rounded-2xl font-semibold text-sm flex items-center gap-2 px-3 ${user?.area === n ? "bg-brand text-white" : "bg-slate-100 dark:bg-night-3"}`}

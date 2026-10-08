@@ -146,15 +146,12 @@ export default function BookingDetail({ id }) {
         {!cancelled && b.status !== "completed" && (
           <div className="space-y-3">
             <Button variant="dark" icon="ArrowRight" onClick={() => advanceBooking(b.id)}>
-              Simulate next status
+              Simulate next status (demo)
             </Button>
             {b.status === "confirmed" && (
               <Button
                 variant="danger"
-                onClick={() => {
-                  cancelBooking(b.id);
-                  notify("Booking cancelled");
-                }}
+                onClick={async () => (await cancelBooking(b.id)) && notify("Booking cancelled")}
               >
                 Cancel booking
               </Button>
@@ -193,10 +190,11 @@ export default function BookingDetail({ id }) {
         </div>
         <Button
           className="mt-6"
-          onClick={() => {
-            rateBooking(b.id, stars, tip);
-            setRateOpen(false);
-            notify("Thanks for your feedback!");
+          onClick={async () => {
+            if (await rateBooking(b.id, stars, tip)) {
+              setRateOpen(false);
+              notify("Thanks for your feedback!");
+            }
           }}
         >
           Submit
