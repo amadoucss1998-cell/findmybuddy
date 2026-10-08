@@ -21,6 +21,7 @@ export function profile(r) {
   return {
     id: r.id,
     phone: r.phone ? r.phone.replace(/^\+?231/, "+231 ") : "",
+    email: r.email || "",
     name: r.name,
     area: r.area,
     role: r.role,

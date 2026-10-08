@@ -53,13 +53,20 @@ export const remote = {
     }));
   },
 
-  async sendOtp(phone) {
-    ok(await supabase.auth.signInWithOtp({ phone }));
-    return {};
+  // Email + password. Requires "Confirm email" to be OFF in Supabase (Auth → Providers → Email)
+  // so new accounts get a session straight away.
+  async signUp(email, password) {
+    const data = ok(await supabase.auth.signUp({ email, password }));
+    if (!data.session) {
+      if (data.user && !data.user.identities?.length) throw new Error("An account with this email already exists — sign in instead");
+      throw new Error("Email confirmation is turned on in Supabase. Turn off Auth → Providers → Email → Confirm email.");
+    }
+    return getProfile(data.user.id);
   },
 
-  async verifyOtp(phone, code) {
-    const data = ok(await supabase.auth.verifyOtp({ phone, token: code, type: "sms" }));
+  async signIn(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(/invalid login/i.test(error.message) ? "Wrong email or password" : error.message);
     return getProfile(data.user.id);
   },
 

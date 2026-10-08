@@ -1,4 +1,4 @@
--- Part 1 of 4: Tables and row-level security.
+-- Part 1 of 5: Tables and row-level security.
 -- Paste this whole file into Supabase → SQL Editor → Run, then do the next part.
 
 -- LoneStar Tasks — Supabase schema, row-level security and RPC functions.

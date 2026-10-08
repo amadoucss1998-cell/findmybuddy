@@ -13,7 +13,7 @@ const SUPABASE_STUB = `
   alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
   create schema auth;
   grant usage on schema auth to anon, authenticated, service_role;
-  create table auth.users (id uuid primary key default gen_random_uuid(), phone text, created_at timestamptz default now());
+  create table auth.users (id uuid primary key default gen_random_uuid(), phone text, email text, created_at timestamptz default now());
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   grant execute on function auth.uid() to anon, authenticated, service_role;
@@ -40,7 +40,8 @@ async function as(uid, sql, params = []) {
 const fails = async (p, re) => assert.rejects(p, re);
 
 async function newUser(phone) {
-  const [u] = (await db.query("insert into auth.users (phone) values ($1) returning id", [phone])).rows;
+  const email = `${phone.replace(/\D/g, "")}@example.com`;
+  const [u] = (await db.query("insert into auth.users (phone, email) values ($1, $2) returning id", [phone, email])).rows;
   return u.id;
 }
 
@@ -55,6 +56,7 @@ test("signup creates profile with welcome credit; RLS isolates users", async () 
   const b = await newUser("+231880000002");
   const [p] = await as(a, "select * from profiles");
   assert.equal(p.wallet_cents, 2500);
+  assert.equal(p.email, "231770000001@example.com");
   assert.equal((await as(a, "select * from profiles")).length, 1);
   assert.equal((await as(b, "select * from notifications where user_id = $1", [a])).length, 0);
   assert.equal((await as(null, "select * from profiles")).length, 0);

@@ -935,3 +935,18 @@ insert into public.reviews (tasker_id, author_name, rating, body, category_id, c
   ('t35', 'Alphonso J.', 5, 'Went above and beyond — even cleaned up after.', 'cooking', now() - interval '21 days');
 
 insert into public.promo_codes (code, discount_cents) values ('LIB5', 500), ('LONESTAR10', 1000);
+
+
+-- ===== 20261008000003_email_auth.sql =====
+-- Email + password sign-in: keep the user's email on their profile.
+alter table public.profiles add column if not exists email text;
+
+create or replace function public.handle_new_user() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.profiles (id, phone, email, wallet_cents) values (new.id, new.phone, new.email, 2500);
+  insert into public.payments (user_id, kind, method, amount_cents, status) values (new.id, 'bonus', 'wallet', 2500, 'succeeded');
+  perform public.notify_user(new.id, 'promo', 'Welcome to LoneStar Tasks 🇱🇷 Get $5 off your first task with code LIB5');
+  return new;
+end $$;
+revoke execute on function public.handle_new_user from public, anon, authenticated;

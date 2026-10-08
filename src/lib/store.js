@@ -99,10 +99,15 @@ export const useApp = create(
         },
 
         // auth
-        sendOtp: (phone) => run(() => backend.sendOtp(phone)),
-        verifyOtp: (phone, code) =>
+        signUp: (email, password) =>
           run(async () => {
-            const user = await backend.verifyOtp(phone, code);
+            const user = await backend.signUp(email, password);
+            await afterLogin(user);
+            return user;
+          }),
+        signIn: (email, password) =>
+          run(async () => {
+            const user = await backend.signIn(email, password);
             await afterLogin(user);
             return user;
           }),

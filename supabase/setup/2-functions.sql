@@ -1,4 +1,4 @@
--- Part 2 of 4: Functions, triggers and realtime.
+-- Part 2 of 5: Functions, triggers and realtime.
 -- Paste this whole file into Supabase → SQL Editor → Run, then do the next part.
 
 -- ---------------------------------------------------------------------------

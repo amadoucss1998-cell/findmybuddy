@@ -1,4 +1,4 @@
--- Part 4 of 4: Reviews and promo codes.
+-- Part 4 of 5: Reviews and promo codes.
 -- Paste this whole file into Supabase → SQL Editor → Run, then do the next part.
 
 insert into public.reviews (tasker_id, author_name, rating, body, category_id, created_at) values

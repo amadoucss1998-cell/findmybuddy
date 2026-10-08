@@ -1,63 +1,36 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button, Icon, Tap } from "../components/ui";
 import { useApp } from "../lib/store";
 import { neighborhoods } from "../lib/data";
-import { normalizePhone } from "../lib/backend/shape";
-
-const DIGITS = 6;
 
 export default function Auth() {
   // A signed-in user without a profile name resumes at the profile step.
-  const [step, setStep] = useState(() => (useApp.getState().user ? 2 : 0));
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState(Array(DIGITS).fill(""));
-  const [devCode, setDevCode] = useState(null);
+  const [step, setStep] = useState(() => (useApp.getState().user ? 1 : 0));
+  const [mode, setMode] = useState("signup"); // signup | signin
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [name, setName] = useState("");
   const [area, setArea] = useState("Sinkor");
   const [role, setRole] = useState("client");
   const [busy, setBusy] = useState(false);
-  const refs = useRef([]);
-  const { sendOtp, verifyOtp, saveProfile, notify, live } = useApp();
+  const { signUp, signIn, saveProfile, notify, live } = useApp();
 
-  const e164 = normalizePhone(phone);
+  const cleanEmail = email.trim().toLowerCase();
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail) && password.length >= 6;
 
-  const sendCode = async () => {
+  const submit = async (e) => {
+    e?.preventDefault();
+    if (!valid || busy) return;
     setBusy(true);
-    const res = await sendOtp(e164);
+    const user = mode === "signup" ? await signUp(cleanEmail, password) : await signIn(cleanEmail, password);
     setBusy(false);
-    if (!res) return;
-    setCode(Array(DIGITS).fill(""));
-    setDevCode(res.devCode || null);
-    setStep(1);
-    notify(res.devCode ? `Demo code: ${res.devCode}` : "Code sent by SMS");
-  };
-
-  const verify = async (digits) => {
-    setBusy(true);
-    const user = await verifyOtp(e164, digits);
-    setBusy(false);
-    if (!user) {
-      setCode(Array(DIGITS).fill(""));
-      refs.current[0]?.focus();
-      return;
-    }
+    if (!user) return;
     if (user.name) {
       notify(`Welcome back, ${user.name.split(" ")[0]}!`);
       useApp.getState().update({ tab: "home" });
-    } else setStep(2);
-  };
-
-  const setDigit = (k, v) => {
-    const d = v.replace(/\D/g, "");
-    const next = [...code];
-    if (d.length > 1) {
-      // Pasted / autofilled code.
-      d.slice(0, DIGITS).split("").forEach((c, i) => (next[i] = c));
-    } else next[k] = d;
-    setCode(next);
-    if (d && k < DIGITS - 1) refs.current[Math.min(k + d.length, DIGITS - 1)]?.focus();
-    if (next.every(Boolean)) verify(next.join(""));
+    } else setStep(1);
   };
 
   const finish = async () => {
@@ -69,57 +42,74 @@ export default function Auth() {
     notify(role === "tasker" ? "Welcome, Tasker! Let's start earning 💪" : `Welcome to LoneStar, ${name.split(" ")[0]}!`);
   };
 
+  const field =
+    "w-full h-14 px-4 rounded-2xl bg-white dark:bg-night-2 border-2 border-slate-200 dark:border-night-3 focus:border-brand outline-none font-semibold";
+
   const panes = [
-    <div key="0">
-      <h1 className="text-[30px] font-extrabold leading-tight">What's your<br />phone number?</h1>
-      <p className="text-mute mt-2">We'll text you a code to verify it's you.</p>
-      <div className="mt-8 flex gap-3">
-        <div className="h-16 px-4 rounded-2xl bg-white dark:bg-night-2 border-2 border-slate-200 dark:border-night-3 flex items-center gap-2 font-bold">
-          <span className="text-xl">🇱🇷</span> +231
-        </div>
-        <input
-          autoFocus
-          inputMode="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value.replace(/[^\d ]/g, "").slice(0, 12))}
-          placeholder="77 123 4567"
-          className="flex-1 min-w-0 h-16 px-4 rounded-2xl bg-white dark:bg-night-2 border-2 border-slate-200 dark:border-night-3 focus:border-brand outline-none text-lg font-bold tracking-wide"
-        />
-      </div>
-      <p className="text-xs text-mute mt-3">Works with Orange (077) and Lonestar MTN (088) numbers.{!live && " Running in local demo mode — no SMS is sent."}</p>
-      <Button className="mt-8" disabled={!e164 || busy} onClick={sendCode}>
-        {busy ? (
-          <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }} className="inline-block w-5 h-5 border-2 border-white/40 border-t-white rounded-full" />
+    <form key="0" onSubmit={submit}>
+      <h1 className="text-[30px] font-extrabold leading-tight">
+        {mode === "signup" ? (
+          <>Create your<br />account</>
         ) : (
-          "Send code"
+          <>Welcome<br />back</>
         )}
-      </Button>
-    </div>,
-    <div key="1">
-      <h1 className="text-[30px] font-extrabold leading-tight">Enter the code</h1>
-      <p className="text-mute mt-2">Sent to {e164}.{devCode && <> Demo mode — your code is <b className="text-brand">{devCode}</b></>}</p>
-      <div className="mt-8 flex gap-2 justify-between">
-        {code.map((d, k) => (
-          <motion.input
-            key={k}
-            ref={(el) => (refs.current[k] = el)}
-            value={d}
-            autoFocus={k === 0}
-            inputMode="numeric"
-            onChange={(e) => setDigit(k, e.target.value)}
-            onKeyDown={(e) => e.key === "Backspace" && !d && k > 0 && refs.current[k - 1]?.focus()}
-            animate={{ scale: d ? [1, 1.12, 1] : 1, borderColor: d ? "#1E4FD8" : "#e2e8f0" }}
-            disabled={busy}
-            autoComplete={k === 0 ? "one-time-code" : "off"}
-            className="w-[46px] h-[60px] text-center text-2xl font-extrabold rounded-2xl bg-white dark:bg-night-2 border-2 outline-none disabled:opacity-50"
-          />
+      </h1>
+      <p className="text-mute mt-2">{mode === "signup" ? "Book trusted Taskers across Liberia in minutes." : "Sign in to see your tasks and messages."}</p>
+      <div className="mt-6 p-1 rounded-2xl bg-slate-200/70 dark:bg-night-2 flex">
+        {[["signup", "Sign up"], ["signin", "Sign in"]].map(([id, label]) => (
+          <button key={id} type="button" onClick={() => setMode(id)} className="relative flex-1 h-10 text-sm font-bold">
+            {mode === id && <motion.div layoutId="auth-seg" className="absolute inset-0 rounded-xl bg-white dark:bg-night-3 shadow" />}
+            <span className={`relative ${mode === id ? "" : "text-mute"}`}>{label}</span>
+          </button>
         ))}
       </div>
-      <button className="mt-6 text-sm font-bold text-brand" onClick={sendCode} disabled={busy}>
-        Resend code
-      </button>
-    </div>,
-    <div key="2">
+      <label className="block mt-6 text-xs font-bold text-mute uppercase tracking-wider">Email</label>
+      <div className="relative mt-2">
+        <Icon name="Mail" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-mute" />
+        <input
+          autoFocus
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          className={`${field} pl-11`}
+        />
+      </div>
+      <label className="block mt-4 text-xs font-bold text-mute uppercase tracking-wider">Password</label>
+      <div className="relative mt-2">
+        <Icon name="Lock" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-mute" />
+        <input
+          type={showPw ? "text" : "password"}
+          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder={mode === "signup" ? "At least 6 characters" : "Your password"}
+          className={`${field} pl-11 pr-16`}
+        />
+        <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-brand">
+          {showPw ? "Hide" : "Show"}
+        </button>
+      </div>
+      {!live && <p className="text-xs text-mute mt-3">Running in local demo mode — accounts are stored on this device only.</p>}
+      <Button className="mt-8" disabled={!valid || busy} type="submit">
+        {busy ? (
+          <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }} className="inline-block w-5 h-5 border-2 border-white/40 border-t-white rounded-full" />
+        ) : mode === "signup" ? (
+          "Create account"
+        ) : (
+          "Sign in"
+        )}
+      </Button>
+      <p className="text-center text-sm text-mute mt-5">
+        {mode === "signup" ? "Already have an account? " : "New to LoneStar? "}
+        <button type="button" onClick={() => setMode(mode === "signup" ? "signin" : "signup")} className="font-bold text-brand">
+          {mode === "signup" ? "Sign in" : "Create one"}
+        </button>
+      </p>
+    </form>,
+    <div key="1">
       <h1 className="text-[30px] font-extrabold leading-tight">Almost done!</h1>
       <p className="text-mute mt-2">Tell us a bit about you.</p>
       <label className="block mt-6 text-xs font-bold text-mute uppercase tracking-wider">Full name</label>
@@ -175,7 +165,7 @@ export default function Auth() {
     <motion.div className="absolute inset-0 flex flex-col bg-surface dark:bg-night" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="px-6 flex items-center gap-4" style={{ paddingTop: "calc(var(--top) + 4px)" }}>
         {step > 0 ? (
-          <Tap onClick={() => setStep(step - 1)} className="w-10 h-10 rounded-full bg-white dark:bg-night-2 grid place-items-center shadow-sm">
+          <Tap onClick={async () => { await useApp.getState().logout(); setStep(0); }} className="w-10 h-10 rounded-full bg-white dark:bg-night-2 grid place-items-center shadow-sm">
             <Icon name="ChevronLeft" />
           </Tap>
         ) : (
@@ -184,7 +174,7 @@ export default function Auth() {
           </div>
         )}
         <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-night-3 overflow-hidden">
-          <motion.div className="h-full bg-brand rounded-full" animate={{ width: `${((step + 1) / 3) * 100}%` }} />
+          <motion.div className="h-full bg-brand rounded-full" animate={{ width: `${((step + 1) / 2) * 100}%` }} />
         </div>
       </div>
       <div className="flex-1 px-6 pt-8 scroll-y">

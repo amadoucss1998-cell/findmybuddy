@@ -18,7 +18,7 @@ function load() {
   } catch {
     /* fall through */
   }
-  return { users: {}, session: null, bookings: [], payments: [], messages: [], notifications: [], favorites: [], redemptions: [], jobs: [], reviews: [], otp: {} };
+  return { users: {}, session: null, bookings: [], payments: [], messages: [], notifications: [], favorites: [], redemptions: [], jobs: [], reviews: [] };
 }
 let db = load();
 const save = () => {
@@ -31,6 +31,13 @@ const save = () => {
 
 let listener = null; // realtime-style callbacks for the signed-in user
 const emit = (type, payload) => listener?.[type]?.(payload);
+
+// Demo-only password hashing so plain passwords never sit in localStorage.
+async function hashPassword(email, password) {
+  const bytes = new TextEncoder().encode(`${email}:${password}`);
+  const buf = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 const me = () => db.users[db.session] || err("Not signed in");
 const taskerRow = (id) => seedTaskers.find((t) => t.id === id) || err("Tasker not found");
@@ -120,25 +127,20 @@ export const local = {
     }));
   },
 
-  async sendOtp(phone) {
-    const code = String(Math.floor(Math.random() * 1e6)).padStart(6, "0");
-    db.otp[phone] = { code, expires: Date.now() + 600000 };
+  async signUp(email, password) {
+    if (Object.values(db.users).some((x) => x.email === email)) err("An account with this email already exists — sign in instead");
+    const u = { id: uuid(), email, password_hash: await hashPassword(email, password), phone: null, name: "", area: "Sinkor", role: "client", wallet_cents: 2500, tasker_online: true, created_at: now() };
+    db.users[u.id] = u;
+    db.payments.unshift({ id: uuid(), user_id: u.id, kind: "bonus", method: "wallet", amount_cents: 2500, status: "succeeded", created_at: now() });
+    db.notifications.unshift({ id: uuid(), user_id: u.id, kind: "promo", body: "Welcome to LoneStar Tasks 🇱🇷 Get $5 off your first task with code LIB5", read: false, created_at: now() });
+    db.session = u.id;
     save();
-    return { devCode: code };
+    return S.profile(u);
   },
 
-  async verifyOtp(phone, code) {
-    const o = db.otp[phone];
-    if (!o || o.expires < Date.now()) err("Code expired — request a new one");
-    if (o.code !== code) err("Incorrect code");
-    delete db.otp[phone];
-    let u = Object.values(db.users).find((x) => x.phone === phone);
-    if (!u) {
-      u = { id: uuid(), phone, name: "", area: "Sinkor", role: "client", wallet_cents: 2500, tasker_online: true, created_at: now() };
-      db.users[u.id] = u;
-      db.payments.unshift({ id: uuid(), user_id: u.id, kind: "bonus", method: "wallet", amount_cents: 2500, status: "succeeded", created_at: now() });
-      db.notifications.unshift({ id: uuid(), user_id: u.id, kind: "promo", body: "Welcome to LoneStar Tasks 🇱🇷 Get $5 off your first task with code LIB5", read: false, created_at: now() });
-    }
+  async signIn(email, password) {
+    const u = Object.values(db.users).find((x) => x.email === email);
+    if (!u || u.password_hash !== (await hashPassword(email, password))) err("Wrong email or password");
     db.session = u.id;
     save();
     return S.profile(u);

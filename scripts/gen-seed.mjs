@@ -52,6 +52,7 @@ const parts = [
   ["2-functions.sql", "Functions, triggers and realtime", init.slice(cut)],
   ["3-catalog.sql", "Categories, Taskers and skills", seed.slice(0, reviewsAt)],
   ["4-reviews.sql", "Reviews and promo codes", seed.slice(reviewsAt)],
+  ...files.slice(2).map((f, i) => [`${5 + i}-${f.replace(/^\d+_/, "").replace(/_/g, "-")}`, "Update", readFileSync(new URL(f, dir), "utf8")]),
 ];
 mkdirSync(new URL("../supabase/setup/", import.meta.url), { recursive: true });
 for (const [name, title, body] of parts) {

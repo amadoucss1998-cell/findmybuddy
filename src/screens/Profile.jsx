@@ -49,7 +49,7 @@ export default function Profile() {
           <Avatar person={{ name: user?.name, gradient: ["#FFB020", "#FF4D5E"] }} size={64} ring />
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-xl truncate">{user?.name}</div>
-            <div className="text-sm text-white/70">{user?.phone}</div>
+            <div className="text-sm text-white/70 truncate">{user?.email || user?.phone}</div>
             <div className="text-xs text-white/70 flex items-center gap-1 mt-0.5">
               <Icon name="MapPin" size={12} /> {user?.area}
             </div>
