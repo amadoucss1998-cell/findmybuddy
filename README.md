@@ -38,7 +38,7 @@ The app talks to Supabase for phone sign-in, the Postgres database, row-level se
 
 ### Set up your Supabase project (one time)
 
-1. **Create the database.** Open Supabase → **SQL Editor**, paste the contents of [`supabase/setup.sql`](supabase/setup.sql) and click **Run**. This creates the tables, security rules and booking/wallet functions, and seeds the 22 categories, 36 Taskers and promo codes. If you use the Supabase CLI, `supabase db push` applies the same files from `supabase/migrations/`.
+1. **Create the database.** Open Supabase → **SQL Editor** and run the four files in [`supabase/setup/`](supabase/setup) in order: `1-tables.sql`, `2-functions.sql`, `3-catalog.sql`, `4-reviews.sql`. For each one, open a new query, paste the whole file and click **Run**. You can paste [`supabase/setup.sql`](supabase/setup.sql) in one go instead, but at 66 KB it often gets cut off, which shows up as `syntax error at end of input`. Copy from GitHub's **Raw** view so you get the complete text. This creates the tables, security rules and booking/wallet functions, and seeds the 22 categories, 36 Taskers and promo codes. If you use the Supabase CLI, `supabase db push` applies the same files from `supabase/migrations/`.
 2. **Turn on phone sign-in.** Go to **Authentication → Sign In / Providers → Phone**, enable it and connect an SMS provider such as Twilio, MessageBird or Vonage. Check that the provider delivers to Liberian numbers (+231). While testing, you can add **test phone numbers with fixed codes** on the same page, so no SMS is sent.
 3. **Keys.** The project URL and **anon** key are in `.env.production`, which production builds use. The anon key is meant to be public, because row-level security protects the data. For local development, copy `.env.example` to `.env.local`. Never put the `service_role` key in this app.
 
@@ -62,6 +62,7 @@ npm install
 npm run dev        # http://localhost:5173 (uses .env.local if present, else the demo backend)
 npm run build      # production build in dist/
 npm run test:db    # runs the Supabase migrations in embedded Postgres (PGlite) and tests RLS + functions
+npm run check:setup # proves the paste-friendly setup files run cleanly on Postgres
 npm run gen:seed   # regenerate the seed migration + supabase/setup.sql after editing src/lib/data.js
 ```
 
