@@ -1,0 +1,35 @@
+{
+  "name": "lonestar-tasks",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:db": "node --test supabase/tests/*.test.mjs",
+    "gen:seed": "node scripts/gen-seed.mjs",
+    "check:setup": "node scripts/check-setup.mjs"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
+    "@supabase/supabase-js": "^2.117.3",
+    "framer-motion": "^12.43.0",
+    "lucide-react": "^1.53.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.180.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^7.3.7"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
